@@ -123,6 +123,12 @@ object TypeSpecGenerator {
                 .build()
                 .also { addField(it) }
 
+            addMethod(MethodSpec.methodBuilder("annotationFqName").apply {
+                addModifiers(Modifier.PUBLIC, Modifier.STATIC)
+                returns(S.fqName)
+                addStatement("return \$N", annotationField)
+            }.build())
+
             if (forIr) {
                 addMethod(MethodSpec.methodBuilder("fromIrConstructorCall").apply {
                     addModifiers(Modifier.PUBLIC, Modifier.STATIC)
