@@ -1,8 +1,5 @@
 package com.anatawa12.autoVisitor.compiler
 
-import com.anatawa12.autoVisitor.GenerateVisitor
-import com.anatawa12.autoVisitor.HasAccept
-import com.anatawa12.autoVisitor.HasVisitor
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.ir.symbols.IrClassSymbol
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
@@ -20,10 +17,6 @@ object Symbols {
             .singleOrNull { symbol -> isAutoVisitorFun(symbol, typeFunction1) }
             ?: error("autoVisitor function not found in classpath")
     }
-
-    val generateVisitor = FqName(GenerateVisitor::class.qualifiedName!!)
-    val hasVisitor = FqName(HasVisitor::class.qualifiedName!!)
-    val hasAccept = FqName(HasAccept::class.qualifiedName!!)
 
     private fun isAutoVisitorFun(
         symbol: IrSimpleFunctionSymbol,

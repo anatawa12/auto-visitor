@@ -462,9 +462,7 @@ class VisitableData(
         }
 
         private fun IrClass.getVisitMethodName(forClass: IrClass): String {
-            val hasAccept = annotations
-                .firstOrNull() { it.type.isClassType(Symbols.hasAccept.toUnsafe()) }
-                ?.let { HasAcceptValue.fromIrConstructorCall(it) }
+            val hasAccept = HasAcceptValue.getFrom(annotations)
                 ?: error("HasAccept annotation not found at ${forClass.fqNameWhenAvailable}")
             check(hasAccept.rootClass.classifierOrNull != forClass.symbol) { "invalid HasAccept rootClass" }
             return hasAccept.visitName
@@ -505,11 +503,9 @@ class VisitableData(
                     ?.let { it as? IrClassSymbol }
                     ?.owner
                     ?: return null
-                val annotation = owner.annotations.firstOrNull { ctorCall ->
-                    ctorCall.type.isClassType(Symbols.hasVisitor.toUnsafe())
-                }
+                val annotation = HasVisitorValue.getFrom(owner.annotations)
                 if (annotation != null)
-                    return self to HasVisitorValue.fromIrConstructorCall(annotation)
+                    return self to annotation
 
                 self = self.superTypes().firstOrNull { it.classOrNull?.owner?.kind == ClassKind.CLASS } ?: return null
             }
