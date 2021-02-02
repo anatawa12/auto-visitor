@@ -8,6 +8,7 @@ plugins {
 tasks.withType<KotlinCompile>() {
     kotlinOptions {
         jvmTarget = "1.8"
+        freeCompilerArgs = freeCompilerArgs + "-Xjvm-default=compatibility"
     }
 }
 
@@ -22,4 +23,6 @@ dependencies {
     implementation(kotlin("compiler"))
     compileOnly("com.google.auto.service:auto-service-annotations:1.0-rc7")
     kapt("com.google.auto.service:auto-service:1.0-rc7")
+    compileOnly(project(":annotation-value-gen"))
+    kapt(project(":annotation-value-gen"))
 }

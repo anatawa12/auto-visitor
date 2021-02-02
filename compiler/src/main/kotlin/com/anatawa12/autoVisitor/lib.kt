@@ -1,21 +1,31 @@
 package com.anatawa12.autoVisitor
 
+import com.anatawa12.annotationValueGen.GenerateValueClass
+import com.anatawa12.annotationValueGen.GenerateValueClassList
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
 import kotlin.reflect.KClass
 
+@GenerateValueClassList(
+    GenerateValueClass(".GenerateVisitorValue", isForIr = true),
+    GenerateValueClass(".GenerateVisitorValueConstant", isForIr = false),
+)
 @Target(AnnotationTarget.CLASS)
 @Retention(AnnotationRetention.BINARY)
 annotation class GenerateVisitor(
     /**
-     *
+     * The name of class which will be generated.
      * if starts with '.', it is name of child class.
      * if else, it is name of the class at same package.
      */
     val visitorName: String,
 )
 
+@GenerateValueClassList(
+    GenerateValueClass(".HasVisitorValue", isForIr = true),
+    GenerateValueClass(".HasVisitorValueConstant", isForIr = false),
+)
 @Target(AnnotationTarget.CLASS)
 @Retention(AnnotationRetention.BINARY)
 annotation class HasVisitor(
@@ -65,6 +75,10 @@ annotation class HasVisitor(
     val invertTypeParamsOfAccept: Boolean = false,
 )
 
+@GenerateValueClassList(
+    GenerateValueClass(".HasAcceptValue", isForIr = true),
+    GenerateValueClass(".HasAcceptValueConstant", isForIr = false),
+)
 @Target(AnnotationTarget.CLASS)
 @Retention(AnnotationRetention.BINARY)
 annotation class HasAccept(
