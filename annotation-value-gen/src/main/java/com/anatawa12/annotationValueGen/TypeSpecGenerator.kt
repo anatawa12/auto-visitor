@@ -6,8 +6,12 @@ import org.jetbrains.annotations.Nullable
 import javax.lang.model.element.Modifier
 
 object TypeSpecGenerator {
-    fun generateClass(valueClassName: ClassName, annotationClassInfo: AnnotationClassInfo, forIr: Boolean): TypeSpec {
-        val annotationName = annotationClassInfo.fqName
+    fun generateClass(
+        valueClassName: ClassName,
+        annotationName: ClassName,
+        annotationClassInfo: AnnotationClassInfo,
+        forIr: Boolean,
+    ): TypeSpec {
         return TypeSpec.classBuilder(valueClassName).apply {
             addModifiers(Modifier.PUBLIC, Modifier.FINAL)
 
@@ -20,6 +24,7 @@ object TypeSpecGenerator {
                     .addAnnotation(NotNull::class.java)
                     .build())
                 addMethod(MethodSpec.methodBuilder(prefixedName("get", name))
+                    .addJavadoc("@see \$T#\$N", annotationName, name)
                     .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
                     .addAnnotation(NotNull::class.java)
                     .returns(typeWithDefault.typeName)

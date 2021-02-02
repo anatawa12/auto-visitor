@@ -1,9 +1,9 @@
 package com.anatawa12.annotationValueGen
 
 import com.google.auto.service.AutoService
+import com.squareup.javapoet.ClassName
 import com.squareup.javapoet.JavaFile
 import javax.annotation.processing.AbstractProcessor
-import javax.annotation.processing.ProcessingEnvironment
 import javax.annotation.processing.Processor
 import javax.annotation.processing.RoundEnvironment
 import javax.lang.model.SourceVersion
@@ -43,7 +43,10 @@ class ValueGenAnnotationProcessor : AbstractProcessor() {
             ?: return
         val annotationClassInfo = AnnotationClassInfo.parse(element, annotation, messager)
             ?: return
-        val typeSpec = TypeSpecGenerator.generateClass(valueClassName, annotationClassInfo, forIr = annotation.isForIr)
+        val typeSpec = TypeSpecGenerator.generateClass(valueClassName,
+            ClassName.get(element),
+            annotationClassInfo,
+            forIr = annotation.isForIr)
         JavaFile.builder(valueClassName.packageName(), typeSpec)
             .build()
             .writeTo(processingEnv.filer)
