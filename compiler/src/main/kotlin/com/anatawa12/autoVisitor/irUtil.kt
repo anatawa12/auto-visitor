@@ -11,7 +11,6 @@ import org.jetbrains.kotlin.ir.util.DumpIrTreeVisitor
 import org.jetbrains.kotlin.ir.util.fqNameWhenAvailable
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.FqNameUnsafe
-import java.lang.StringBuilder
 
 fun IrTypeParameter.isAnyVariable(): Boolean = superTypes.singleOrNull()?.isNullableAny() ?: false
 
@@ -20,13 +19,15 @@ fun IrType.isClassType(fqName: FqNameUnsafe): Boolean {
     if (this.hasQuestionMark) return false
     return classifier.isClassWithFqName(fqName)
 }
-val IrType.fqName: FqName? get() {
-    if (this !is IrSimpleType) return null
-    if (this.hasQuestionMark) return null
-    val classifier = classifier as? IrClassSymbol ?: return null
-    val owner = classifier.owner
-    return owner.fqNameWhenAvailable
-}
+
+val IrType.fqName: FqName?
+    get() {
+        if (this !is IrSimpleType) return null
+        if (this.hasQuestionMark) return null
+        val classifier = classifier as? IrClassSymbol ?: return null
+        val owner = classifier.owner
+        return owner.fqNameWhenAvailable
+    }
 
 fun IrElement.dump(prefix: String) {
     val appendable = StringBuilder()

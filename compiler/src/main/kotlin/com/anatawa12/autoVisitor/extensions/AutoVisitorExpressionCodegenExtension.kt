@@ -12,7 +12,7 @@ class AutoVisitorExpressionCodegenExtension : ExpressionCodegenExtension {
     override fun applyFunction(
         receiver: StackValue,
         resolvedCall: ResolvedCall<*>,
-        c: ExpressionCodegenExtension.Context
+        c: ExpressionCodegenExtension.Context,
     ): StackValue? {
         val targetDesc = resolvedCall.resultingDescriptor
         resolvedCall.resultingDescriptor.fqNameSafe

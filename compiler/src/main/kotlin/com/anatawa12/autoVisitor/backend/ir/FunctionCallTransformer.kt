@@ -40,7 +40,8 @@ class FunctionCallTransformer(
             val replacement = parentReplacements[declaration.parent]
             if (replacement != null)
                 declaration.parent = replacement
-        } catch (ignore: Throwable) {}
+        } catch (ignore: Throwable) {
+        }
         return super.visitDeclaration(declaration)
     }
 
@@ -71,12 +72,16 @@ class FunctionCallTransformer(
         }
     }
 
-    private inline fun <T : IrValueAccessExpression> replaceValueSymbol(expression: T, replace: (IrValueSymbol) -> T): IrExpression {
+    private inline fun <T : IrValueAccessExpression> replaceValueSymbol(
+        expression: T,
+        replace: (IrValueSymbol) -> T,
+    ): IrExpression {
         try {
             val replacement = variableReplacements[expression.symbol]
             if (replacement != null)
                 return replace(replacement).also { it.transform(this, null) }
-        } catch (ignore: Throwable) {}
+        } catch (ignore: Throwable) {
+        }
         return super.visitDeclarationReference(expression)
     }
 
@@ -117,7 +122,8 @@ class FunctionCallTransformer(
                 dispatchReceiver = valueArgument
                 if (data.hasCustomDataParam) {
                     putValueArgument(0, visitor)
-                    putValueArgument(1, IrGetObjectValueImpl(UNDEFINED_OFFSET, UNDEFINED_OFFSET, builtIns.unitType, builtIns.unitClass))
+                    putValueArgument(1,
+                        IrGetObjectValueImpl(UNDEFINED_OFFSET, UNDEFINED_OFFSET, builtIns.unitType, builtIns.unitClass))
                     if (!data.invertTypeParamsOfAccept) {
                         putTypeArgument(0, returningType)
                         putTypeArgument(1, builtIns.unitType)
@@ -159,7 +165,8 @@ class FunctionCallTransformer(
                 expression,
             )
 
-            val creatingBlock = IrBlockImpl(UNDEFINED_OFFSET, UNDEFINED_OFFSET, ctx.visitorType, IrStatementOrigin.OBJECT_LITERAL)
+            val creatingBlock =
+                IrBlockImpl(UNDEFINED_OFFSET, UNDEFINED_OFFSET, ctx.visitorType, IrStatementOrigin.OBJECT_LITERAL)
 
             val newClass = irFactory.buildClass {
                 name = Name.special("<no name provided>")
@@ -281,9 +288,11 @@ class FunctionCallTransformer(
     private fun unsupportedWhenBranch(): Nothing {
         error("unsupported when branch. requires 'is Type' or 'ObjectType', and 'else'.")
     }
+
     private fun branchForTheTypeNotFound(type: IrType): Nothing {
         error("visit method for ${type.fqName} not found.")
     }
+
     private fun unsupportedWhenExpr(): Nothing {
         error("unsupported when. requires when (param) {}")
     }
@@ -348,7 +357,7 @@ class VisitableData(
 
         private val IrType.irClassSymbolOrFail get() = classifierOrFail.cast<IrClassSymbol>()
 
-        private data class VisitorTypeInfo (
+        private data class VisitorTypeInfo(
             val methodsByType: Map<IrType, IrSimpleFunction>,
             val constructor: IrConstructor,
         )
@@ -374,7 +383,7 @@ class VisitableData(
                 val (typeR, typeD) = typeParameters.invertTwoIfTrue(hasVisitor.invertTypeParamsOfVisitor)
                 check(typeR.isAnyVariable())
                 check(typeD.isAnyVariable())
-                visitChecker = fun (func, type): Boolean {
+                visitChecker = fun(func, type): Boolean {
                     if (func.typeParameters.isNotEmpty()) return false
                     if (func.valueParameters.size != 2) return false
                     if (func.returnType.classifierOrNull != typeR.symbol) return false
@@ -387,7 +396,7 @@ class VisitableData(
                 check(typeParameters.size == 1)
                 val (typeR) = typeParameters
                 check(typeR.isAnyVariable())
-                visitChecker = fun (func, type): Boolean {
+                visitChecker = fun(func, type): Boolean {
                     if (func.typeParameters.isNotEmpty()) return false
                     if (func.valueParameters.size != 1) return false
                     if (func.returnType.classifierOrNull != typeR.symbol) return false
@@ -399,7 +408,8 @@ class VisitableData(
 
             val methodsByType = hashMapOf<IrType, IrSimpleFunction>()
 
-            val simpleTypeOfThisClass = IrSimpleTypeBuilder().also { it.classifier = rootType.irClassSymbolOrFail }.buildSimpleType()
+            val simpleTypeOfThisClass =
+                IrSimpleTypeBuilder().also { it.classifier = rootType.irClassSymbolOrFail }.buildSimpleType()
 
             var rootName: String? = rootType.getVisitMethodName(this)
             val typesByVisitName = hasVisitor.subclasses.groupByTo(hashMapOf()) { it.getVisitMethodName(this) }
@@ -460,7 +470,11 @@ class VisitableData(
             return hasAccept.visitName
         }
 
-        private fun IrType.isVisitorType(hasVisitor: HasVisitorValue, typeR: IrTypeParameter, typeD: IrTypeParameter?): Boolean {
+        private fun IrType.isVisitorType(
+            hasVisitor: HasVisitorValue,
+            typeR: IrTypeParameter,
+            typeD: IrTypeParameter?,
+        ): Boolean {
             if (this !is IrSimpleType) return false
             if (classifier != hasVisitor.visitorType.classifierOrFail) return false
             if (typeD != null) {

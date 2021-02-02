@@ -1,7 +1,6 @@
 package com.anatawa12.autoVisitor
 
 import com.anatawa12.autoVisitor.backend.ir.AutoVisitorIrGenerationExtension
-import com.anatawa12.autoVisitor.backend.ir.Symbols
 import com.google.auto.service.AutoService
 import com.intellij.mock.MockProject
 import com.intellij.psi.PsiElement
@@ -75,7 +74,7 @@ class StorageComponentContainerContributorImpl : StorageComponentContainerContri
     override fun registerModuleComponents(
         container: StorageComponentContainer,
         platform: TargetPlatform,
-        moduleDescriptor: ModuleDescriptor
+        moduleDescriptor: ModuleDescriptor,
     ) {
         container.useInstance(CallCheckerImpl())
     }
