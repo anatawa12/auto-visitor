@@ -11,6 +11,8 @@ tasks.withType<KotlinCompile>() {
     }
 }
 
+kapt.includeCompileClasspath = false
+
 repositories {
     mavenCentral()
 }

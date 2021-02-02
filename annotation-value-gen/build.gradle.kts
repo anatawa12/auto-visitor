@@ -19,6 +19,8 @@ dependencies {
     kapt("com.google.auto.service:auto-service:1.0-rc7")
 }
 
+kapt.includeCompileClasspath = false
+
 tasks.withType<KotlinCompile> {
     kotlinOptions {
         freeCompilerArgs = listOf("-Xopt-in=kotlin.RequiresOptIn")
