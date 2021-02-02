@@ -1,5 +1,6 @@
 rootProject.name = "auto-visitor"
 include("compiler")
+include("annotation-value-gen")
 
 val enableBenchmark = System.getenv("ENABLE_AUTO_VISITOR_BENCHMARKS") == "ENABLED"
 //val enableBenchmark = true

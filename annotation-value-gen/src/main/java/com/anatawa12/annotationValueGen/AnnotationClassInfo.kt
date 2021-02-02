@@ -19,7 +19,7 @@ class AnnotationClassInfo(
                 if (enclosedElement.kind != ElementKind.METHOD) continue
                 enclosedElement as ExecutableElement
 
-                val typeWithDefault = getTypeWithDefault(enclosedElement, messager)
+                val typeWithDefault = getTypeWithDefault(enclosedElement, generate.isForIr, messager)
                 if (typeWithDefault == null) {
                     wasError = true
                     continue
@@ -33,22 +33,24 @@ class AnnotationClassInfo(
             )
         }
 
-        private fun typeNameFrom(type: AnnotationValueType<*>, errorHandler: ErrorHandler): TypeName? {
-            return type.typeName(errorHandler)
+        private fun typeNameFrom(type: AnnotationValueType<*>, forIr: Boolean, errorHandler: ErrorHandler): TypeName? {
+            return type.typeName(forIr, errorHandler)
         }
 
         private fun getTypeWithDefault(
             enclosedElement: ExecutableElement,
+            forIr: Boolean,
             messager: Messager,
         ): TypeWithDefault<*>? {
             val type = AnnotationValueType.from(enclosedElement.returnType, makeErrorHandler(messager, enclosedElement))
                 ?: return null
-            return getTypeWithDefault(enclosedElement, type, messager)
+            return getTypeWithDefault(enclosedElement, type, forIr, messager)
         }
 
         private fun <T : Any> getTypeWithDefault(
             enclosedElement: ExecutableElement,
             type: AnnotationValueType<T>,
+            forIr: Boolean,
             messager: Messager,
         ): TypeWithDefault<T>? {
             val errorHandler = makeErrorHandler(messager, enclosedElement)
@@ -56,7 +58,7 @@ class AnnotationClassInfo(
                 return errorHandler("default value for Class<*> is not supported")
             return TypeWithDefault(
                 type,
-                typeNameFrom(type, errorHandler) ?: return null,
+                typeNameFrom(type, forIr = forIr, errorHandler = errorHandler) ?: return null,
                 enclosedElement.defaultValue?.run { get(type, errorHandler) ?: return null },
             )
         }

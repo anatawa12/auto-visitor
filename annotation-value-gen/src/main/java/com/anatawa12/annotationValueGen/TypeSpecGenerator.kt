@@ -5,7 +5,7 @@ import org.jetbrains.annotations.NotNull
 import javax.lang.model.element.Modifier
 
 object TypeSpecGenerator {
-    fun generateClass(valueClassName: ClassName, annotationClassInfo: AnnotationClassInfo): TypeSpec {
+    fun generateClass(valueClassName: ClassName, annotationClassInfo: AnnotationClassInfo, forIr: Boolean): TypeSpec {
         val annotationName = annotationClassInfo.fqName
         return TypeSpec.classBuilder(valueClassName).apply {
             addModifiers(Modifier.PUBLIC, Modifier.FINAL)
@@ -123,44 +123,84 @@ object TypeSpecGenerator {
                 .build()
                 .also { addField(it) }
 
-            addMethod(MethodSpec.methodBuilder("fromIrConstructorCall").apply {
-                addModifiers(Modifier.PUBLIC, Modifier.STATIC)
-                returns(valueClassName)
-                addParameter(ParameterSpec.builder(S.irConstructorCall, "call")
-                    .addAnnotation(NotNull::class.java)
-                    .build())
+            if (forIr) {
+                addMethod(MethodSpec.methodBuilder("fromIrConstructorCall").apply {
+                    addModifiers(Modifier.PUBLIC, Modifier.STATIC)
+                    returns(valueClassName)
+                    addParameter(ParameterSpec.builder(S.irConstructorCall, "call")
+                        .addAnnotation(NotNull::class.java)
+                        .build())
 
-                CodeBlockScope.make(this::addCode) {
-                    add("${type(S.objects)}.requireNonNull(call, ${str("call must not be null")});")
-                    add("${type(S.irConstructor)} function = call.getSymbol().getOwner();")
-                    add("if (!${type(valueClassName)}.isClassType(function.getReturnType(), ${name(annotationField)}.toUnsafe()))")
-                    left("throw new ${type(S.illegalArgumentException)}(${str("the call does not calls ${annotationName.simpleName()}")});")
-                    add("")
-                    add("${type(builderName)} builder = builder();")
-                    add("")
-                    beg("for (${type(S.irValueParameter)} valueParameter : function.getValueParameters())")
-                    kotlin.run {
-                        add("${type(S.irExpression)} value = call.getValueArgument(valueParameter.getIndex());")
-                        add("if (value == null) continue;")
-                        beg("switch (valueParameter.getName().getIdentifier())")
+                    CodeBlockScope.make(this::addCode) {
+                        add("${type(S.objects)}.requireNonNull(call, ${str("call must not be null")});")
+                        add("${type(S.irConstructor)} function = call.getSymbol().getOwner();")
+                        add("if (!${type(valueClassName)}.isClassType(function.getReturnType(), ${name(annotationField)}.toUnsafe()))")
+                        left("throw new ${type(S.illegalArgumentException)}(${str("the call does not calls ${annotationName.simpleName()}")});")
+                        add("")
+                        add("${type(builderName)} builder = builder();")
+                        add("")
+                        beg("for (${type(S.irValueParameter)} valueParameter : function.getValueParameters())")
                         kotlin.run {
-                            for ((name, typeWithDefault) in annotationClassInfo.values) {
-                                add("case ${str(name)}:")
-                                indent()
-                                add("builder.${name(prefixedName("with", name))}(${
-                                    lit(typeWithDefault.type.fromValue("value"))
-                                });")
-                                add("break;")
-                                unindent()
+                            add("${type(S.irExpression)} value = call.getValueArgument(valueParameter.getIndex());")
+                            add("if (value == null) continue;")
+                            beg("switch (valueParameter.getName().getIdentifier())")
+                            kotlin.run {
+                                for ((name, typeWithDefault) in annotationClassInfo.values) {
+                                    add("case ${str(name)}:")
+                                    indent()
+                                    add("builder.${name(prefixedName("with", name))}(${
+                                        lit(typeWithDefault.type.fromValue("value"))
+                                    });")
+                                    add("break;")
+                                    unindent()
+                                }
                             }
+                            end()
                         }
                         end()
+                        add("")
+                        add("return builder.build();")
                     }
-                    end()
-                    add("")
-                    add("return builder.build();")
-                }
-            }.build())
+                }.build())
+            } else {
+                addMethod(MethodSpec.methodBuilder("fromAnnotationDescriptor").apply {
+                    addModifiers(Modifier.PUBLIC, Modifier.STATIC)
+                    returns(valueClassName)
+                    addParameter(ParameterSpec.builder(S.annotationDescriptor, "desc")
+                        .addAnnotation(NotNull::class.java)
+                        .build())
+
+                    CodeBlockScope.make(this::addCode) {
+                        add("${type(S.objects)}.requireNonNull(desc, ${str("desc must not be null")});")
+                        add("if (!${name(annotationField)}.equals(desc.getFqName()))")
+                        left("throw new ${type(S.illegalArgumentException)}(${str("the descriptor is not of ${annotationName.simpleName()}")});")
+                        add("")
+                        add("${type(builderName)} builder = builder();")
+                        add("")
+                        beg("for (${type(S.nameAndConstantValueEntry)} entry : desc.getAllValueArguments().entrySet())")
+                        kotlin.run {
+                            add("${type(S.constantValueStar)} value = entry.getValue();")
+                            add("if (value == null) continue;")
+                            beg("switch (entry.getKey().getIdentifier())")
+                            kotlin.run {
+                                for ((name, typeWithDefault) in annotationClassInfo.values) {
+                                    add("case ${str(name)}:")
+                                    indent()
+                                    add("builder.${name(prefixedName("with", name))}(${
+                                        lit(typeWithDefault.type.fromConstant("value"))
+                                    });")
+                                    add("break;")
+                                    unindent()
+                                }
+                            }
+                            end()
+                        }
+                        end()
+                        add("")
+                        add("return builder.build();")
+                    }
+                }.build())
+            }
 
             addMethod(MethodSpec.methodBuilder("isClassType").apply {
                 addModifiers(Modifier.PRIVATE, Modifier.STATIC)
