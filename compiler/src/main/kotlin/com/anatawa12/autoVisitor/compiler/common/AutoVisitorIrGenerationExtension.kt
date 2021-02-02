@@ -1,5 +1,6 @@
-package com.anatawa12.autoVisitor.compiler.backend.ir
+package com.anatawa12.autoVisitor.compiler.common
 
+import com.anatawa12.autoVisitor.compiler.caller.FunctionCallTransformer
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment

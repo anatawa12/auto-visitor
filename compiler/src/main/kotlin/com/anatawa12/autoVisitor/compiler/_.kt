@@ -1,6 +1,6 @@
 package com.anatawa12.autoVisitor.compiler
 
-import com.anatawa12.autoVisitor.compiler.backend.ir.AutoVisitorIrGenerationExtension
+import com.anatawa12.autoVisitor.compiler.common.AutoVisitorIrGenerationExtension
 import com.google.auto.service.AutoService
 import com.intellij.mock.MockProject
 import com.intellij.psi.PsiElement

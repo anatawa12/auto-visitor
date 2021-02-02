@@ -1,4 +1,4 @@
-package com.anatawa12.autoVisitor.compiler.backend.ir
+package com.anatawa12.autoVisitor.compiler.caller
 
 import com.anatawa12.autoVisitor.compiler.*
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
