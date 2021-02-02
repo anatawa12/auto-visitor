@@ -8,7 +8,10 @@ plugins {
 tasks.withType<KotlinCompile>() {
     kotlinOptions {
         jvmTarget = "1.8"
-        freeCompilerArgs = freeCompilerArgs + "-Xjvm-default=compatibility"
+        freeCompilerArgs = listOf(
+            "-Xjvm-default=compatibility",
+            "-Xopt-in=kotlin.RequiresOptIn"
+        )
     }
 }
 
