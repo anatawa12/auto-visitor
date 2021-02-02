@@ -2,6 +2,7 @@ package com.anatawa12.annotationValueGen
 
 import com.squareup.javapoet.*
 import org.jetbrains.annotations.NotNull
+import org.jetbrains.annotations.Nullable
 import javax.lang.model.element.Modifier
 
 object TypeSpecGenerator {
@@ -130,6 +131,25 @@ object TypeSpecGenerator {
             }.build())
 
             if (forIr) {
+                addMethod(MethodSpec.methodBuilder("getFrom").apply {
+                    addAnnotation(Nullable::class.java)
+                    addModifiers(Modifier.PUBLIC, Modifier.STATIC)
+                    addParameter(ParameterSpec.builder(ParameterizedTypeName.get(S.list, S.irConstructorCall), "calls")
+                        .addAnnotation(NotNull::class.java)
+                        .build())
+                    returns(valueClassName)
+
+                    CodeBlockScope.make(this::addCode) {
+                        beg("for (${type(S.irConstructorCall)} call : calls)")
+                        kotlin.run {
+                            add("if (${type(valueClassName)}.isClassType(call.getType(), ${name(annotationField)}.toUnsafe()))")
+                            left("return ${type(valueClassName)}.fromIrConstructorCall(call);")
+                        }
+                        end()
+                        add("return null;")
+                    }
+                }.build())
+
                 addMethod(MethodSpec.methodBuilder("fromIrConstructorCall").apply {
                     addModifiers(Modifier.PUBLIC, Modifier.STATIC)
                     returns(valueClassName)
@@ -169,6 +189,22 @@ object TypeSpecGenerator {
                     }
                 }.build())
             } else {
+                addMethod(MethodSpec.methodBuilder("getFrom").apply {
+                    addAnnotation(Nullable::class.java)
+                    addModifiers(Modifier.PUBLIC, Modifier.STATIC)
+                    addParameter(ParameterSpec.builder(S.annotations, "annotations")
+                        .addAnnotation(NotNull::class.java)
+                        .build())
+                    returns(valueClassName)
+
+                    CodeBlockScope.make(this::addCode) {
+                        add("${type(S.annotationDescriptor)} desc = annotations.findAnnotation(${name(annotationField)});")
+                        add("if (desc == null)\n")
+                        left("return null;\n")
+                        add("return ${type(valueClassName)}.fromAnnotationDescriptor(desc);\n")
+                    }
+                }.build())
+
                 addMethod(MethodSpec.methodBuilder("fromAnnotationDescriptor").apply {
                     addModifiers(Modifier.PUBLIC, Modifier.STATIC)
                     returns(valueClassName)

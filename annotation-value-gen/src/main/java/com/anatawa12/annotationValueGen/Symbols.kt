@@ -40,6 +40,7 @@ object S {
     val enumValue = ClassName.get("org.jetbrains.kotlin.resolve.constants", "EnumValue")
     val annotationValue = ClassName.get("org.jetbrains.kotlin.resolve.constants", "AnnotationValue")
     val arrayValue = ClassName.get("org.jetbrains.kotlin.resolve.constants", "ArrayValue")
+    val annotations = ClassName.get("org.jetbrains.kotlin.descriptors.annotations", "Annotations")
 
     val collectors = ClassName.get(Collectors::class.java)!!
     val illegalArgumentException = ClassName.get(IllegalArgumentException::class.java)!!
