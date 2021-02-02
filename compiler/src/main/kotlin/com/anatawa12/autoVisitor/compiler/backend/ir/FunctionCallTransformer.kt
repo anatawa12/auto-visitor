@@ -1,6 +1,6 @@
-package com.anatawa12.autoVisitor.backend.ir
+package com.anatawa12.autoVisitor.compiler.backend.ir
 
-import com.anatawa12.autoVisitor.*
+import com.anatawa12.autoVisitor.compiler.*
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.backend.common.ir.createParameterDeclarations
 import org.jetbrains.kotlin.descriptors.ClassKind

@@ -1,4 +1,4 @@
-package com.anatawa12.autoVisitor.extensions
+package com.anatawa12.autoVisitor.compiler.extensions
 
 import org.jetbrains.kotlin.codegen.StackValue
 import org.jetbrains.kotlin.codegen.extensions.ExpressionCodegenExtension

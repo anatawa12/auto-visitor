@@ -8,8 +8,8 @@ import kotlin.contracts.contract
 import kotlin.reflect.KClass
 
 @GenerateValueClassList(
-    GenerateValueClass(".GenerateVisitorValue", isForIr = true),
-    GenerateValueClass(".GenerateVisitorValueConstant", isForIr = false),
+    GenerateValueClass(".compiler.GenerateVisitorValue", isForIr = true),
+    GenerateValueClass(".compiler.GenerateVisitorValueConstant", isForIr = false),
 )
 @Target(AnnotationTarget.CLASS)
 @Retention(AnnotationRetention.BINARY)
@@ -23,8 +23,8 @@ annotation class GenerateVisitor(
 )
 
 @GenerateValueClassList(
-    GenerateValueClass(".HasVisitorValue", isForIr = true),
-    GenerateValueClass(".HasVisitorValueConstant", isForIr = false),
+    GenerateValueClass(".compiler.HasVisitorValue", isForIr = true),
+    GenerateValueClass(".compiler.HasVisitorValueConstant", isForIr = false),
 )
 @Target(AnnotationTarget.CLASS)
 @Retention(AnnotationRetention.BINARY)
@@ -76,8 +76,8 @@ annotation class HasVisitor(
 )
 
 @GenerateValueClassList(
-    GenerateValueClass(".HasAcceptValue", isForIr = true),
-    GenerateValueClass(".HasAcceptValueConstant", isForIr = false),
+    GenerateValueClass(".compiler.HasAcceptValue", isForIr = true),
+    GenerateValueClass(".compiler.HasAcceptValueConstant", isForIr = false),
 )
 @Target(AnnotationTarget.CLASS)
 @Retention(AnnotationRetention.BINARY)
