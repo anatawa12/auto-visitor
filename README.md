@@ -45,6 +45,16 @@ autoVisitor(some_expr) { variable ->
     - [x] Generating calling accept from when
       > However, currently not supported to use outer scope variables *needs help*
     - [ ] Provide Compilation Error *needs help*
+    
+## Structure of this project
+
+- [compiler](./compiler)
+
+  the compiler plugin of this project
+- [annotation-value-gen](./annotation-value-gen)
+
+  a pluggable annotation processor for the compiler plugin. 
+  See readme in it for more details
 
 ## Motivation
 
