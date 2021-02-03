@@ -7,12 +7,26 @@ import org.jetbrains.kotlin.descriptors.resolveClassByFqName
 import org.jetbrains.kotlin.incremental.components.NoLookupLocation
 import org.jetbrains.kotlin.resolve.constants.KClassValue
 import org.jetbrains.kotlin.types.KotlinType
+import org.jetbrains.kotlin.types.KotlinTypeFactory
+import org.jetbrains.kotlin.types.TypeProjectionImpl
 
 fun KClassValue.Value.resolveKotlinTypeOrNull(module: ModuleDescriptor): KotlinType? = when (this) {
     is KClassValue.Value.NormalClass -> when (this.arrayDimensions) {
         0 -> module.resolveClassByFqName(this.classId.asSingleFqName(), NoLookupLocation.FROM_BACKEND)
             ?.defaultType
-        else -> null
+        else -> {
+            module.resolveClassByFqName(this.classId.asSingleFqName(),
+                NoLookupLocation.FROM_BACKEND)?.defaultType?.let {
+                var type = it
+                repeat(arrayDimensions) {
+                    type = KotlinTypeFactory.simpleType(
+                        module.builtIns.array.defaultType,
+                        arguments = listOf(TypeProjectionImpl(type)),
+                    )
+                }
+                type
+            }
+        }
     }
     is KClassValue.Value.LocalClass -> this.type
 }
