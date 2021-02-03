@@ -46,8 +46,8 @@ object VGUtil {
     fun getVisitorTypeVariables(
         type: ClassDescriptor,
         visitorType: ClassDescriptor,
-    ): Pair<TypeParameterDescriptor, TypeParameterDescriptor?> {
-        val hasVisitor = HasVisitorValueConstant.getFrom(type.annotations)!!
+    ): Pair<TypeParameterDescriptor, TypeParameterDescriptor?>? {
+        val hasVisitor = HasVisitorValueConstant.getFrom(type.annotations) ?: return null
         return if (hasVisitor.hasCustomDataParam) {
             check(visitorType.declaredTypeParameters.size == 2)
             visitorType.declaredTypeParameters.invertTwoIfTrue(hasVisitor.invertTypeParamsOfVisitor)

@@ -39,7 +39,7 @@ class VisitorResolveExtension : SyntheticResolveExtension {
             ?: return
 
         val type = generateVisitor.visitorOf.resolveClassOrNull(thisDescriptor.module) ?: return
-        val (typeR, typeD) = VGUtil.getVisitorTypeVariables(type, thisDescriptor)
+        val (typeR, typeD) = VGUtil.getVisitorTypeVariables(type, thisDescriptor) ?: return
         val visits = VGUtil.getVisitClasses(type) ?: return
 
         for (subclass in visits.filter { name.identifier == VGUtil.getVisitorNameOf(it, type) }) {

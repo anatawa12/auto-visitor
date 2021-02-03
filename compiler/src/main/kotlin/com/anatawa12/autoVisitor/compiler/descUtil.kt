@@ -1,11 +1,9 @@
 package com.anatawa12.autoVisitor.compiler
 
-import org.jetbrains.kotlin.descriptors.ClassDescriptor
-import org.jetbrains.kotlin.descriptors.ClassifierDescriptor
-import org.jetbrains.kotlin.descriptors.ModuleDescriptor
-import org.jetbrains.kotlin.descriptors.resolveClassByFqName
+import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.incremental.components.NoLookupLocation
 import org.jetbrains.kotlin.resolve.constants.KClassValue
+import org.jetbrains.kotlin.resolve.descriptorUtil.builtIns
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.KotlinTypeFactory
 import org.jetbrains.kotlin.types.TypeProjectionImpl
@@ -55,4 +53,9 @@ fun ClassDescriptor.getAllSealedSubclasses(): Sequence<ClassDescriptor> = object
             return desc
         }
     }
+}
+
+fun TypeParameterDescriptor.isAnyVariable(): Boolean {
+    return upperBounds.isEmpty()
+            || builtIns.nullableAnyType == upperBounds.singleOrNull()
 }

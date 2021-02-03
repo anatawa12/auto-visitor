@@ -36,3 +36,5 @@ fun IrElement.dump(prefix: String) {
 }
 
 fun <E> List<E>.invertTwoIfTrue(condition: Boolean) = if (condition) this[1] to this[0] else this[0] to this[1]
+fun <E> Pair<E, E>.invertTwoIfTrue(condition: Boolean) = if (condition) second to first else this //first to second
+fun <E> Pair<E, E>.toList() = listOf(first, second)
