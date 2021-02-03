@@ -15,8 +15,14 @@ object TypeSpecGenerator {
         return TypeSpec.classBuilder(valueClassName).apply {
             addModifiers(Modifier.PUBLIC, Modifier.FINAL)
 
+            val generatedFromType = if (forIr) S.irConstructorCall else S.annotationDescriptor
             val builderName = valueClassName.nestedClass("Builder")
-            addType(generateBuilder(builderName, valueClassName, annotationClassInfo))
+            addType(generateBuilder(builderName, valueClassName, annotationClassInfo, generatedFromType))
+
+            addField(FieldSpec.builder(generatedFromType, "i\$generatedFrom")
+                .addModifiers(Modifier.PRIVATE, Modifier.FINAL)
+                .addAnnotation(Nullable::class.java)
+                .build())
 
             for ((name, typeWithDefault) in annotationClassInfo.values) {
                 addField(FieldSpec.builder(typeWithDefault.typeName, fn(name))
@@ -38,6 +44,7 @@ object TypeSpecGenerator {
                     .addAnnotation(NotNull::class.java)
                     .build())
 
+                addStatement("this.\$N = builder.\$N", "i\$generatedFrom", "i\$generatedFrom")
                 for ((name, typeWithDefault) in annotationClassInfo.values) {
                     if (typeWithDefault.defaults != null) {
                         addStatement("this.\$N = \$T.requireNonNull(builder.\$N, \$S)", fn(name), S.objects, fn(name),
@@ -47,6 +54,13 @@ object TypeSpecGenerator {
                     }
                 }
             }.build())
+
+            addMethod(MethodSpec.methodBuilder("generatedFrom")
+                .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
+                .addAnnotation(Nullable::class.java)
+                .returns(generatedFromType)
+                .addStatement("return this.\$N", "i\$generatedFrom")
+                .build())
 
             addMethod(MethodSpec.methodBuilder("builder").apply {
                 addModifiers(Modifier.PUBLIC, Modifier.STATIC)
@@ -190,7 +204,7 @@ object TypeSpecGenerator {
                         }
                         end()
                         add("")
-                        add("return builder.build();")
+                        add("return builder.build(call);")
                     }
                 }.build())
             } else {
@@ -244,7 +258,7 @@ object TypeSpecGenerator {
                         }
                         end()
                         add("")
-                        add("return builder.build();")
+                        add("return builder.build(desc);")
                     }
                 }.build())
             }
@@ -273,9 +287,16 @@ object TypeSpecGenerator {
         builderName: ClassName,
         valueClassName: ClassName,
         annotationClassInfo: AnnotationClassInfo,
+        generatedFromType: ClassName,
     ): TypeSpec {
         return TypeSpec.classBuilder(builderName).apply {
             addModifiers(Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL)
+
+            addField(FieldSpec.builder(generatedFromType, "i\$generatedFrom")
+                .addModifiers(Modifier.PRIVATE)
+                .addAnnotation(Nullable::class.java)
+                .build())
+
             for ((name, typeWithDefault) in annotationClassInfo.values) {
                 val buildingType =
                     if (typeWithDefault.defaults != null) typeWithDefault.typeName else typeWithDefault.typeName.box()
@@ -313,6 +334,15 @@ object TypeSpecGenerator {
                     .initializer(typeWithDefault.defaultsLiteral())
                     .build())
             }
+            addMethod(MethodSpec.methodBuilder("build")
+                .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
+                .returns(valueClassName)
+                .addParameter(ParameterSpec.builder(generatedFromType, "generatedFrom")
+                    .addAnnotation(Nullable::class.java)
+                    .build())
+                .addStatement("this.\$N = generatedFrom", "i\$generatedFrom")
+                .addStatement("return new \$T(this)", valueClassName)
+                .build())
             addMethod(MethodSpec.methodBuilder("build")
                 .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
                 .returns(valueClassName)
