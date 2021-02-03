@@ -15,11 +15,9 @@ import kotlin.reflect.KClass
 @Retention(AnnotationRetention.BINARY)
 annotation class GenerateVisitor(
     /**
-     * The name of class which will be generated.
-     * if starts with '.', it is name of child class.
-     * if else, it is name of the class at same package.
+     * The class which has accept.
      */
-    val visitorName: String,
+    val visitorOf: KClass<*>,
 )
 
 @GenerateValueClassList(

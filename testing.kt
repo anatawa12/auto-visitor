@@ -81,13 +81,7 @@ sealed class Sealed {
         }
     }
 
+    @GenerateVisitor(Sealed::class)
     abstract class Visitor<out R, in D> {
-        abstract fun visitSealed(value: Sealed, data: D): R
-        open fun visitValue1(value: Value1, data: D): R = visitSealed(value, data)
-        open fun visitValue2(value: Value2, data: D): R = visitSealed(value, data)
-        open fun visitValue3Companion(value: Sealed1.Value3.Companion, data: D): R = visitSealed(value, data)
-        open fun visitSealed1(value: Sealed1, data: D): R = visitSealed(value, data)
-        open fun visitValue3(value: Sealed1.Value3, data: D): R = visitSealed1(value, data)
-        open fun visitValue4(value: Sealed1.Value4, data: D): R = visitSealed1(value, data)
     }
 }

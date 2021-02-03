@@ -125,7 +125,7 @@ object TypeSpecGenerator {
 
             val annotationField = FieldSpec.builder(S.fqName, "i\$annotationField")
                 .addModifiers(Modifier.PRIVATE, Modifier.STATIC)
-                .initializer("new \$T(\$S)", S.fqName, annotationClassInfo.fqName.toString())
+                .initializer("new \$T(\$S)", S.fqName, annotationName.toString())
                 .build()
                 .also { addField(it) }
 
