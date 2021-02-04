@@ -30,6 +30,8 @@ sealed class AnnotationValueType<T : Any>(val name: kotlin.String) {
                 CodeBlock.of("(\$T)((\$T)\$N).getValue()", TypeName.BYTE, S.irConst, name)
             TargetFormat.KotlinDescriptor ->
                 CodeBlock.of("((\$T)\$N).getValue()", S.byteValue, name)
+            TargetFormat.AnnotationProcessor ->
+                CodeBlock.of("(\$T)\$N.getValue()", TypeName.BYTE, name)
         }
     }
 
@@ -41,6 +43,8 @@ sealed class AnnotationValueType<T : Any>(val name: kotlin.String) {
                 CodeBlock.of("(\$T)((\$T)\$N).getValue()", TypeName.SHORT, S.irConst, name)
             TargetFormat.KotlinDescriptor ->
                 CodeBlock.of("((\$T)\$N).getValue()", S.shortValue, name)
+            TargetFormat.AnnotationProcessor ->
+                CodeBlock.of("(\$T)\$N.getValue()", TypeName.SHORT, name)
         }
     }
 
@@ -52,6 +56,8 @@ sealed class AnnotationValueType<T : Any>(val name: kotlin.String) {
                 CodeBlock.of("(\$T)((\$T)\$N).getValue()", TypeName.INT, S.irConst, name)
             TargetFormat.KotlinDescriptor ->
                 CodeBlock.of("((\$T)\$N).getValue()", S.intValue, name)
+            TargetFormat.AnnotationProcessor ->
+                CodeBlock.of("(\$T)\$N.getValue()", TypeName.INT, name)
         }
     }
 
@@ -63,6 +69,8 @@ sealed class AnnotationValueType<T : Any>(val name: kotlin.String) {
                 CodeBlock.of("(\$T)((\$T)\$N).getValue()", TypeName.LONG, S.irConst, name)
             TargetFormat.KotlinDescriptor ->
                 CodeBlock.of("((\$T)\$N).getValue()", S.longValue, name)
+            TargetFormat.AnnotationProcessor ->
+                CodeBlock.of("(\$T)\$N.getValue()", TypeName.LONG, name)
         }
     }
 
@@ -74,6 +82,8 @@ sealed class AnnotationValueType<T : Any>(val name: kotlin.String) {
                 CodeBlock.of("(\$T)((\$T)\$N).getValue()", TypeName.CHAR, S.irConst, name)
             TargetFormat.KotlinDescriptor ->
                 CodeBlock.of("((\$T)\$N).getValue()", S.charValue, name)
+            TargetFormat.AnnotationProcessor ->
+                CodeBlock.of("(\$T)\$N.getValue()", TypeName.CHAR, name)
         }
     }
 
@@ -85,6 +95,8 @@ sealed class AnnotationValueType<T : Any>(val name: kotlin.String) {
                 CodeBlock.of("(\$T)((\$T)\$N).getValue()", TypeName.FLOAT, S.irConst, name)
             TargetFormat.KotlinDescriptor ->
                 CodeBlock.of("((\$T)\$N).getValue()", S.floatValue, name)
+            TargetFormat.AnnotationProcessor ->
+                CodeBlock.of("(\$T)\$N.getValue()", TypeName.FLOAT, name)
         }
     }
 
@@ -96,6 +108,8 @@ sealed class AnnotationValueType<T : Any>(val name: kotlin.String) {
                 CodeBlock.of("(\$T)((\$T)\$N).getValue()", TypeName.DOUBLE, S.irConst, name)
             TargetFormat.KotlinDescriptor ->
                 CodeBlock.of("((\$T)\$N).getValue()", S.doubleValue, name)
+            TargetFormat.AnnotationProcessor ->
+                CodeBlock.of("(\$T)\$N.getValue()", TypeName.DOUBLE, name)
         }
     }
 
@@ -107,6 +121,8 @@ sealed class AnnotationValueType<T : Any>(val name: kotlin.String) {
                 CodeBlock.of("(\$T)((\$T)\$N).getValue()", TypeName.BOOLEAN, S.irConst, name)
             TargetFormat.KotlinDescriptor ->
                 CodeBlock.of("((\$T)\$N).getValue()", S.booleanValue, name)
+            TargetFormat.AnnotationProcessor ->
+                CodeBlock.of("(\$T)\$N.getValue()", TypeName.BOOLEAN, name)
         }
     }
 
@@ -118,6 +134,8 @@ sealed class AnnotationValueType<T : Any>(val name: kotlin.String) {
                 CodeBlock.of("(\$T)((\$T)\$N).getValue()", kotlin.String::class.java, S.irConst, name)
             TargetFormat.KotlinDescriptor ->
                 CodeBlock.of("((\$T)\$N).getValue()", S.stringValue, name)
+            TargetFormat.AnnotationProcessor ->
+                CodeBlock.of("(\$T)\$N.getValue()", kotlin.String::class.java, name)
         }
     }
 
@@ -127,6 +145,8 @@ sealed class AnnotationValueType<T : Any>(val name: kotlin.String) {
                 S.irType
             TargetFormat.KotlinDescriptor ->
                 S.kClassValueValue
+            TargetFormat.AnnotationProcessor ->
+                APS.typeMirror
         }
 
         override fun literalOf(value: TypeMirror): CodeBlock = error("default value of Class<?> is not supported")
@@ -135,6 +155,8 @@ sealed class AnnotationValueType<T : Any>(val name: kotlin.String) {
                 CodeBlock.of("((\$T)\$N).getClassType()", S.irClassReference, name)
             TargetFormat.KotlinDescriptor ->
                 CodeBlock.of("((\$T)\$N).getValue()", S.kClassValue, name)
+            TargetFormat.AnnotationProcessor ->
+                CodeBlock.of("(\$T)\$N.getValue()", APS.typeMirror, name)
         }
     }
 
@@ -150,6 +172,9 @@ sealed class AnnotationValueType<T : Any>(val name: kotlin.String) {
             TargetFormat.KotlinDescriptor ->
                 CodeBlock.of("\$T.valueOf(((\$T)\$N).getValue().getSecond().getIdentifier())",
                     TypeName.get(type), S.enumValue, name)
+            TargetFormat.AnnotationProcessor ->
+                CodeBlock.of("\$T.valueOf(((\$T)\$N.getValue()).getSimpleName().asString())",
+                    TypeName.get(type), APS.variableElement, name)
         }
 
         override fun equals(other: Any?) = type == (other as? Enum)?.type
@@ -182,6 +207,9 @@ sealed class AnnotationValueType<T : Any>(val name: kotlin.String) {
             TargetFormat.KotlinDescriptor ->
                 CodeBlock.of("\$T.fromAnnotationDescriptor(((\$T)\$N).getValue())",
                     info.fqName, S.annotationValue, name)
+            TargetFormat.AnnotationProcessor ->
+                CodeBlock.of("\$T.fromAnnotationMirror((\$T)\$N.getValue())",
+                    info.fqName, APS.annotationMirror, name)
         }
 
         override fun equals(other: Any?) = type == (other as? Enum)?.type
@@ -215,6 +243,12 @@ sealed class AnnotationValueType<T : Any>(val name: kotlin.String) {
                     indent()
                     add(".getValue()\n")
                     add(".stream()\n")
+                }
+                TargetFormat.AnnotationProcessor -> {
+                    add("((\$T<?>)\$N.getValue())\n", S.list, name)
+                    indent()
+                    add(".stream()\n")
+                    add(".map(value1 -> (\$T)value1)\n", APS.annotationValue)
                 }
             }
             add(".map(\$N -> \$L)\n", "${name}_", type.fromValue(targetFormat, "${name}_"))

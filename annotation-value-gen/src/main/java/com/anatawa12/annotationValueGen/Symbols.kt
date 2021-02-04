@@ -53,3 +53,22 @@ object S {
     val constantValueStar = ParameterizedTypeName.get(constantValue, WildcardTypeName.subtypeOf(TypeName.OBJECT))!!
     val nameAndConstantValueEntry = ParameterizedTypeName.get(entry, name, constantValueStar)!!
 }
+
+/**
+ * Annotation Prosessor Symbols
+ */
+object APS {
+    val typeMirror = ClassName.get("javax.lang.model.type", "TypeMirror")!!
+    val typeElement = ClassName.get("javax.lang.model.element", "TypeElement")!!
+    val annotationValue = ClassName.get("javax.lang.model.element", "AnnotationValue")!!
+    val variableElement = ClassName.get("javax.lang.model.element", "VariableElement")!!
+    val annotationMirror = ClassName.get("javax.lang.model.element", "AnnotationMirror")!!
+    val annotatedConstruct = ClassName.get("javax.lang.model", "AnnotatedConstruct")!!
+    val executableElement = ClassName.get("javax.lang.model.element", "ExecutableElement")!!
+
+    val executableAndAnnotationValueEntry = ParameterizedTypeName.get(
+        S.entry,
+        WildcardTypeName.subtypeOf(executableElement),
+        WildcardTypeName.subtypeOf(annotationValue),
+    )!!
+}

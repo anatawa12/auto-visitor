@@ -18,6 +18,7 @@ object TypeSpecGenerator {
             val generatedFromType = when (targetFormat) {
                 TargetFormat.KotlinIrCompiler -> S.irConstructorCall
                 TargetFormat.KotlinDescriptor -> S.annotationDescriptor
+                TargetFormat.AnnotationProcessor -> APS.annotationMirror
             }
 
             val builderName = valueClassName.nestedClass("Builder")
@@ -141,20 +142,45 @@ object TypeSpecGenerator {
                 addStatement("return true")
             }.build())
 
-            val annotationField = FieldSpec.builder(S.fqName, "i\$annotationField")
-                .addModifiers(Modifier.PRIVATE, Modifier.STATIC)
-                .initializer("new \$T(\$S)", S.fqName, annotationName.toString())
-                .build()
-                .also { addField(it) }
+            fun annotationFqNameFieldAndMethod(): FieldSpec {
+                val annotationField = FieldSpec.builder(S.fqName, "i\$annotationField")
+                    .addModifiers(Modifier.PRIVATE, Modifier.STATIC)
+                    .initializer("new \$T(\$S)", S.fqName, annotationName.toString())
+                    .build()
+                    .also { addField(it) }
 
-            addMethod(MethodSpec.methodBuilder("annotationFqName").apply {
-                addModifiers(Modifier.PUBLIC, Modifier.STATIC)
-                returns(S.fqName)
-                addStatement("return \$N", annotationField)
-            }.build())
+                addMethod(MethodSpec.methodBuilder("annotationFqName").apply {
+                    addModifiers(Modifier.PUBLIC, Modifier.STATIC)
+                    returns(S.fqName)
+                    addStatement("return \$N", annotationField)
+                }.build())
+
+                return annotationField
+            }
+
+            fun isClassType() {
+                addMethod(MethodSpec.methodBuilder("isClassType").apply {
+                    addModifiers(Modifier.PRIVATE, Modifier.STATIC)
+                    returns(TypeName.BOOLEAN)
+
+                    addParameter(ParameterSpec.builder(S.irType, "type")
+                        .addAnnotation(NotNull::class.java)
+                        .build())
+                    addParameter(ParameterSpec.builder(S.fqNameUnsafe, "fqName")
+                        .addAnnotation(NotNull::class.java)
+                        .build())
+
+                    CodeBlockScope.make(this::addCode) {
+                        add("if (!(type instanceof ${type(S.irSimpleType)})) return false;")
+                        add("if (((${type(S.irSimpleType)})type).getHasQuestionMark()) return false;")
+                        add("return ${type(S.irTypePredicatesKt)}.isClassWithFqName(((${type(S.irSimpleType)})type).getClassifier(), fqName);")
+                    }
+                }.build())
+            }
 
             when (targetFormat) {
                 TargetFormat.KotlinIrCompiler -> {
+                    val annotationField = annotationFqNameFieldAndMethod()
                     addMethod(MethodSpec.methodBuilder("getFrom").apply {
                         addAnnotation(Nullable::class.java)
                         addModifiers(Modifier.PUBLIC, Modifier.STATIC)
@@ -215,8 +241,10 @@ object TypeSpecGenerator {
                             add("return builder.build(call);")
                         }
                     }.build())
+                    isClassType()
                 }
                 TargetFormat.KotlinDescriptor -> {
+                    val annotationField = annotationFqNameFieldAndMethod()
                     addMethod(MethodSpec.methodBuilder("getFrom").apply {
                         addAnnotation(Nullable::class.java)
                         addModifiers(Modifier.PUBLIC, Modifier.STATIC)
@@ -272,26 +300,90 @@ object TypeSpecGenerator {
                             add("return builder.build(desc);")
                         }
                     }.build())
+                    isClassType()
+                }
+                TargetFormat.AnnotationProcessor -> {
+                    addMethod(MethodSpec.methodBuilder("annotationFqName").apply {
+                        addModifiers(Modifier.PUBLIC, Modifier.STATIC)
+                        returns(String::class.java)
+                        addStatement("return \$S", annotationName.toString())
+                    }.build())
+
+                    addMethod(MethodSpec.methodBuilder("getFrom").apply {
+                        addAnnotation(Nullable::class.java)
+                        addModifiers(Modifier.PUBLIC, Modifier.STATIC)
+                        addParameter(ParameterSpec.builder(APS.annotatedConstruct, "construct")
+                            .addAnnotation(NotNull::class.java)
+                            .build())
+                        returns(valueClassName)
+
+                        CodeBlockScope.make(this::addCode) {
+                            add("return ${type(valueClassName)}.getFrom(construct.getAnnotationMirrors());\n")
+                        }
+                    }.build())
+
+                    addMethod(MethodSpec.methodBuilder("getFrom").apply {
+                        addAnnotation(Nullable::class.java)
+                        addModifiers(Modifier.PUBLIC, Modifier.STATIC)
+                        addParameter(ParameterSpec.builder(ParameterizedTypeName.get(S.list,
+                            WildcardTypeName.subtypeOf(APS.annotationMirror)),
+                            "list")
+                            .addAnnotation(NotNull::class.java)
+                            .build())
+                        returns(valueClassName)
+
+                        CodeBlockScope.make(this::addCode) {
+                            add("${type(S.objects)}.requireNonNull(list, ${str("list must not be null")});")
+                            beg("for (${type(APS.annotationMirror)} mirror : list)")
+                            kotlin.run {
+                                add("if (mirror instanceof ${type(APS.typeElement)}) continue;")
+                                add("if (((${type(APS.typeElement)}) mirror).getQualifiedName().contentEquals(annotationFqName()))")
+                                left("return ${type(valueClassName)}.fromAnnotationMirror(mirror);")
+                            }
+                            end()
+                            add("return null;")
+                        }
+                    }.build())
+
+                    addMethod(MethodSpec.methodBuilder("fromAnnotationMirror").apply {
+                        addModifiers(Modifier.PUBLIC, Modifier.STATIC)
+                        returns(valueClassName)
+                        addParameter(ParameterSpec.builder(APS.annotationMirror, "mirror")
+                            .addAnnotation(NotNull::class.java)
+                            .build())
+
+                        CodeBlockScope.make(this::addCode) {
+                            add("${type(S.objects)}.requireNonNull(mirror, ${str("mirror must not be null")});")
+                            add("if (!(mirror instanceof ${type(APS.typeElement)}) || ((${type(APS.typeElement)}) mirror).getQualifiedName().contentEquals(annotationFqName()))")
+                            left("throw new ${type(S.illegalArgumentException)}(${str("the mirror is not of ${annotationName.simpleName()}")});")
+                            add("")
+                            add("${type(builderName)} builder = builder();")
+                            add("")
+                            beg("for (${type(APS.executableAndAnnotationValueEntry)} entry : mirror.getElementValues().entrySet())")
+                            kotlin.run {
+                                add("${type(APS.annotationValue)} value = entry.getValue();")
+                                add("if (value == null) continue;")
+                                beg("switch (entry.getKey().getSimpleName().toString())")
+                                kotlin.run {
+                                    for ((name, typeWithDefault) in annotationClassInfo.values) {
+                                        add("case ${str(name)}:")
+                                        indent()
+                                        add("builder.${name(prefixedName("with", name))}(${
+                                            lit(typeWithDefault.type.fromValue(targetFormat, "value"))
+                                        });")
+                                        add("break;")
+                                        unindent()
+                                    }
+                                }
+                                end()
+                            }
+                            end()
+                            add("")
+                            add("return builder.build(mirror);")
+                        }
+                    }.build())
                 }
             }
-
-            addMethod(MethodSpec.methodBuilder("isClassType").apply {
-                addModifiers(Modifier.PRIVATE, Modifier.STATIC)
-                returns(TypeName.BOOLEAN)
-
-                addParameter(ParameterSpec.builder(S.irType, "type")
-                    .addAnnotation(NotNull::class.java)
-                    .build())
-                addParameter(ParameterSpec.builder(S.fqNameUnsafe, "fqName")
-                    .addAnnotation(NotNull::class.java)
-                    .build())
-
-                CodeBlockScope.make(this::addCode) {
-                    add("if (!(type instanceof ${type(S.irSimpleType)})) return false;")
-                    add("if (((${type(S.irSimpleType)})type).getHasQuestionMark()) return false;")
-                    add("return ${type(S.irTypePredicatesKt)}.isClassWithFqName(((${type(S.irSimpleType)})type).getClassifier(), fqName);")
-                }
-            }.build())
         }.build()
     }
 
