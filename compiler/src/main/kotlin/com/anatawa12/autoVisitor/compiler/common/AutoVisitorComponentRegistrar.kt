@@ -1,0 +1,29 @@
+package com.anatawa12.autoVisitor.compiler.common
+
+import com.anatawa12.autoVisitor.compiler.accept.AcceptResolveExtension
+import com.anatawa12.autoVisitor.compiler.visitor.VisitorResolveExtension
+import com.google.auto.service.AutoService
+import com.intellij.mock.MockProject
+import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
+import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
+import org.jetbrains.kotlin.cli.jvm.compiler.report
+import org.jetbrains.kotlin.compiler.plugin.ComponentRegistrar
+import org.jetbrains.kotlin.config.CommonConfigurationKeys
+import org.jetbrains.kotlin.config.CompilerConfiguration
+import org.jetbrains.kotlin.extensions.StorageComponentContainerContributor
+import org.jetbrains.kotlin.resolve.extensions.SyntheticResolveExtension
+
+@AutoService(ComponentRegistrar::class)
+class AutoVisitorComponentRegistrar : ComponentRegistrar {
+    override fun registerProjectComponents(project: MockProject, configuration: CompilerConfiguration) {
+        if (!configuration.getBoolean(CommonConfigurationKeys.USE_FIR))
+            configuration.report(CompilerMessageSeverity.ERROR,
+                "ir compiler is required for auto-visitor. Please enable with '-Xuse-ir'.")
+
+        IrGenerationExtension.registerExtension(project, AutoVisitorIrGenerationExtension())
+        StorageComponentContainerContributor.registerExtension(project,
+            AutoVisitorStorageComponentContainerContributor())
+        SyntheticResolveExtension.registerExtension(project, AcceptResolveExtension())
+        SyntheticResolveExtension.registerExtension(project, VisitorResolveExtension())
+    }
+}
