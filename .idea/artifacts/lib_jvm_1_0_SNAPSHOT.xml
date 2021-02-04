@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="lib-jvm-1.0-SNAPSHOT">
+    <output-path>$PROJECT_DIR$/lib/build/libs</output-path>
+    <root id="archive" name="lib-jvm-1.0-SNAPSHOT.jar">
+      <element id="module-output" name="auto-visitor.lib.jvmMain" />
+    </root>
+  </artifact>
+</component>
