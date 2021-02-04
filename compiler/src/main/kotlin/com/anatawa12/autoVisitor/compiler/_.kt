@@ -1,5 +1,6 @@
 package com.anatawa12.autoVisitor.compiler
 
+import com.anatawa12.autoVisitor.HasAccept
 import com.anatawa12.autoVisitor.compiler.common.AutoVisitorCommandLineProcessor
 
 /*
@@ -24,6 +25,8 @@ fun main(args: Array<String>) {
     val cp = mutableListOf<String>()
     cp += java.io.File(AutoVisitorCommandLineProcessor::class.java.protectionDomain.codeSource.location.toURI())
         .toString()
+    cp += java.io.File(HasAccept::class.java.protectionDomain.codeSource.location.toURI())
+        .toString()
     cp += java.io.File(Unit::class.java.protectionDomain.codeSource.location.toURI()).toString()
 
     org.jetbrains.kotlin.cli.jvm.K2JVMCompiler.main(
@@ -32,6 +35,7 @@ fun main(args: Array<String>) {
             "-cp", cp.joinToString(java.io.File.pathSeparator),
             "-no-stdlib",
             "-Xuse-ir",
+            "-d", "test-compile-out",
             "testing.kt"
         ))
 }
