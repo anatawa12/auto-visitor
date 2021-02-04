@@ -55,8 +55,6 @@ annotation class HasVisitor(
     val acceptName: String,
     /**
      * the subclasses.
-     * if [GenerateVisitor] was marked and it's an sealed class,
-     * you can make empty array and it's automatically computed.
      */
     val subclasses: Array<KClass<*>>,
     /**

@@ -2,7 +2,6 @@ package com.anatawa12.autoVisitor.compiler.visitor
 
 import com.anatawa12.autoVisitor.compiler.*
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
-import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.descriptors.TypeParameterDescriptor
 import org.jetbrains.kotlin.resolve.descriptorUtil.getAllSuperclassesWithoutAny
 import org.jetbrains.kotlin.resolve.descriptorUtil.isSubclassOf
@@ -23,8 +22,7 @@ object VGUtil {
 
     fun getSubclasses(type: ClassDescriptor): Sequence<ClassDescriptor>? {
         val hasVisitor = HasVisitorValueConstant.getFrom(type.annotations) ?: return null
-        return if (hasVisitor.subclasses.isEmpty() && type.modality == Modality.SEALED) type.getAllSealedSubclasses()
-        else hasVisitor.subclasses.asSequence()
+        return hasVisitor.subclasses.asSequence()
             .mapNotNull { it.resolveClassOrNull(type.module) }
             .filter { it.isSubclassOf(type) }
     }
