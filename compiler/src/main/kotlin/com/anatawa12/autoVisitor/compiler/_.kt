@@ -1,5 +1,6 @@
 package com.anatawa12.autoVisitor.compiler
 
+import com.anatawa12.autoVisitor.compiler.accept.AcceptResolveExtension
 import com.anatawa12.autoVisitor.compiler.common.AnnotationsChecker
 import com.anatawa12.autoVisitor.compiler.common.AutoVisitorIrGenerationExtension
 import com.anatawa12.autoVisitor.compiler.visitor.VisitorResolveExtension
@@ -70,6 +71,7 @@ class ComponentRegistrarImpl : ComponentRegistrar {
     override fun registerProjectComponents(project: MockProject, configuration: CompilerConfiguration) {
         IrGenerationExtension.registerExtension(project, AutoVisitorIrGenerationExtension())
         StorageComponentContainerContributor.registerExtension(project, StorageComponentContainerContributorImpl())
+        SyntheticResolveExtension.registerExtension(project, AcceptResolveExtension())
         SyntheticResolveExtension.registerExtension(project, VisitorResolveExtension())
     }
 }

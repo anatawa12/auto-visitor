@@ -21,6 +21,14 @@ annotation class GenerateVisitor(
 )
 
 @GenerateValueClassList(
+    GenerateValueClass(".compiler.GenerateAcceptValue", isForIr = true),
+    GenerateValueClass(".compiler.GenerateAcceptValueConstant", isForIr = false),
+)
+@Target(AnnotationTarget.CLASS)
+@Retention(AnnotationRetention.BINARY)
+annotation class GenerateAccept
+
+@GenerateValueClassList(
     GenerateValueClass(".compiler.HasVisitorValue", isForIr = true),
     GenerateValueClass(".compiler.HasVisitorValueConstant", isForIr = false),
 )
