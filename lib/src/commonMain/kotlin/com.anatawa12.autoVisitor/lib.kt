@@ -1,16 +1,10 @@
 package com.anatawa12.autoVisitor
 
-import com.anatawa12.annotationValueGen.GenerateValueClass
-import com.anatawa12.annotationValueGen.GenerateValueClassList
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
 import kotlin.reflect.KClass
 
-@GenerateValueClassList(
-    GenerateValueClass(".compiler.GenerateVisitorValue", isForIr = true),
-    GenerateValueClass(".compiler.GenerateVisitorValueConstant", isForIr = false),
-)
 @Target(AnnotationTarget.CLASS)
 @Retention(AnnotationRetention.BINARY)
 annotation class GenerateVisitor(
@@ -20,18 +14,10 @@ annotation class GenerateVisitor(
     val visitorOf: KClass<*>,
 )
 
-@GenerateValueClassList(
-    GenerateValueClass(".compiler.GenerateAcceptValue", isForIr = true),
-    GenerateValueClass(".compiler.GenerateAcceptValueConstant", isForIr = false),
-)
 @Target(AnnotationTarget.CLASS)
 @Retention(AnnotationRetention.BINARY)
 annotation class GenerateAccept
 
-@GenerateValueClassList(
-    GenerateValueClass(".compiler.HasVisitorValue", isForIr = true),
-    GenerateValueClass(".compiler.HasVisitorValueConstant", isForIr = false),
-)
 @Target(AnnotationTarget.CLASS)
 @Retention(AnnotationRetention.BINARY)
 annotation class HasVisitor(
@@ -79,10 +65,6 @@ annotation class HasVisitor(
     val invertTypeParamsOfAccept: Boolean = false,
 )
 
-@GenerateValueClassList(
-    GenerateValueClass(".compiler.HasAcceptValue", isForIr = true),
-    GenerateValueClass(".compiler.HasAcceptValueConstant", isForIr = false),
-)
 @Target(AnnotationTarget.CLASS)
 @Retention(AnnotationRetention.BINARY)
 annotation class HasAccept(
