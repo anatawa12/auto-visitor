@@ -26,21 +26,21 @@ object S {
     val constantValue = ClassName.get("org.jetbrains.kotlin.resolve.constants", "ConstantValue")!!
     val name = ClassName.get("org.jetbrains.kotlin.name", "Name")!!
 
-    val byteValue = ClassName.get("org.jetbrains.kotlin.resolve.constants", "ByteValue")
-    val shortValue = ClassName.get("org.jetbrains.kotlin.resolve.constants", "ShortValue")
-    val intValue = ClassName.get("org.jetbrains.kotlin.resolve.constants", "IntValue")
-    val longValue = ClassName.get("org.jetbrains.kotlin.resolve.constants", "LongValue")
-    val charValue = ClassName.get("org.jetbrains.kotlin.resolve.constants", "CharValue")
-    val floatValue = ClassName.get("org.jetbrains.kotlin.resolve.constants", "FloatValue")
-    val doubleValue = ClassName.get("org.jetbrains.kotlin.resolve.constants", "DoubleValue")
-    val booleanValue = ClassName.get("org.jetbrains.kotlin.resolve.constants", "BooleanValue")
-    val stringValue = ClassName.get("org.jetbrains.kotlin.resolve.constants", "StringValue")
-    val kClassValue = ClassName.get("org.jetbrains.kotlin.resolve.constants", "KClassValue")
-    val kClassValueValue = kClassValue.nestedClass("Value")
-    val enumValue = ClassName.get("org.jetbrains.kotlin.resolve.constants", "EnumValue")
-    val annotationValue = ClassName.get("org.jetbrains.kotlin.resolve.constants", "AnnotationValue")
-    val arrayValue = ClassName.get("org.jetbrains.kotlin.resolve.constants", "ArrayValue")
-    val annotations = ClassName.get("org.jetbrains.kotlin.descriptors.annotations", "Annotations")
+    val byteValue = ClassName.get("org.jetbrains.kotlin.resolve.constants", "ByteValue")!!
+    val shortValue = ClassName.get("org.jetbrains.kotlin.resolve.constants", "ShortValue")!!
+    val intValue = ClassName.get("org.jetbrains.kotlin.resolve.constants", "IntValue")!!
+    val longValue = ClassName.get("org.jetbrains.kotlin.resolve.constants", "LongValue")!!
+    val charValue = ClassName.get("org.jetbrains.kotlin.resolve.constants", "CharValue")!!
+    val floatValue = ClassName.get("org.jetbrains.kotlin.resolve.constants", "FloatValue")!!
+    val doubleValue = ClassName.get("org.jetbrains.kotlin.resolve.constants", "DoubleValue")!!
+    val booleanValue = ClassName.get("org.jetbrains.kotlin.resolve.constants", "BooleanValue")!!
+    val stringValue = ClassName.get("org.jetbrains.kotlin.resolve.constants", "StringValue")!!
+    val kClassValue = ClassName.get("org.jetbrains.kotlin.resolve.constants", "KClassValue")!!
+    val kClassValueValue = kClassValue.nestedClass("Value")!!
+    val enumValue = ClassName.get("org.jetbrains.kotlin.resolve.constants", "EnumValue")!!
+    val annotationValue = ClassName.get("org.jetbrains.kotlin.resolve.constants", "AnnotationValue")!!
+    val arrayValue = ClassName.get("org.jetbrains.kotlin.resolve.constants", "ArrayValue")!!
+    val annotations = ClassName.get("org.jetbrains.kotlin.descriptors.annotations", "Annotations")!!
 
     val collectors = ClassName.get(Collectors::class.java)!!
     val illegalArgumentException = ClassName.get(IllegalArgumentException::class.java)!!
@@ -50,6 +50,6 @@ object S {
     val entry = ClassName.get(Map.Entry::class.java)!!
 
 
-    val constantValueStar = ParameterizedTypeName.get(constantValue, WildcardTypeName.subtypeOf(TypeName.OBJECT))
-    val nameAndConstantValueEntry = ParameterizedTypeName.get(entry, name, constantValueStar)
+    val constantValueStar = ParameterizedTypeName.get(constantValue, WildcardTypeName.subtypeOf(TypeName.OBJECT))!!
+    val nameAndConstantValueEntry = ParameterizedTypeName.get(entry, name, constantValueStar)!!
 }
