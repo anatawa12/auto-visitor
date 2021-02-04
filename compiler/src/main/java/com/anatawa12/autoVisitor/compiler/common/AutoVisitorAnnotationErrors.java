@@ -40,6 +40,10 @@ public class AutoVisitorAnnotationErrors {
     @NotNull
     public static final DiagnosticFactory0<PsiElement> ACCEPT_FUNCTION_NOT_FOUND = DiagnosticFactory0.create(Severity.ERROR);
 
+    // @GenerateAccept
+    @NotNull
+    public static final DiagnosticFactory0<PsiElement> GENERATE_ACCEPT_NEEDS_HAS_VISITOR_ANNOTATION = DiagnosticFactory0.create(Severity.ERROR);
+
     // common: Visitor class
     @NotNull
     public static final DiagnosticFactory1<PsiElement, Integer> VISITOR_HAS_INVALID_COUNT_OF_TYPE_PARAM = DiagnosticFactory1.create(Severity.ERROR);

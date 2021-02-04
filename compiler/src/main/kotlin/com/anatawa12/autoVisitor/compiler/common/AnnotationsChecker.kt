@@ -31,6 +31,21 @@ class AnnotationsChecker : DeclarationChecker {
         HasVisitorValueConstant.getFrom(descriptor.annotations)?.let { hasVisitor ->
             checkHasVisitor(hasVisitor, declaration, descriptor, context)
         }
+        GenerateAcceptValueConstant.getFrom(descriptor.annotations)?.let { generateAccept ->
+            checkGenerateAccept(generateAccept, declaration, descriptor, context)
+        }
+    }
+
+    private fun checkGenerateAccept(
+        generateAccept: GenerateAcceptValueConstant,
+        declaration: KtDeclaration,
+        descriptor: DeclarationDescriptor,
+        context: DeclarationCheckerContext,
+    ) {
+        val annotationPsi = generateAccept.generatedFrom()!!.source.getPsi()
+
+        if (HasVisitorValueConstant.getFrom(descriptor.annotations) == null)
+            context.trace.report(GENERATE_ACCEPT_NEEDS_HAS_VISITOR_ANNOTATION.on(annotationPsi ?: declaration))
     }
 
     private fun checkGenerateVisitor(

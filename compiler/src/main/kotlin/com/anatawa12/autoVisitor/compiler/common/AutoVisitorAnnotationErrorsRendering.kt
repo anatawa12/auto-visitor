@@ -72,6 +72,11 @@ object AutoVisitorAnnotationErrorsRendering : DefaultErrorMessages.Extension {
             ACCEPT_FUNCTION_NOT_FOUND,
             "accept function is not found"
         )
+        // @GenerateAccept
+        MAP.put(
+            GENERATE_ACCEPT_NEEDS_HAS_VISITOR_ANNOTATION,
+            "@GenerateAccept needs @HasVisitor",
+        )
         // common: Visitor class
         MAP.put(
             VISITOR_HAS_INVALID_COUNT_OF_TYPE_PARAM,
