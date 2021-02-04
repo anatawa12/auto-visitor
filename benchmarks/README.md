@@ -2,10 +2,9 @@
 
 ## benchmark result
 
-You can see with jmh-visualizer [here][bench-result].
-You can also get jmh result json [here](./benchmark-result.json)
+You can see with jmh-visualizer [here][bench-result]. You can also get jmh result json [here](./benchmark-result.json)
 
-Enviorment:
+Environment:
 
 ```angular2html
   Model Identifier:      iMac17,1

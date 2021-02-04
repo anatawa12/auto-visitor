@@ -36,11 +36,11 @@ autoVisitor(some_expr) { variable ->
 
 ## Status of implementation
 
-- [ ] Automatically include this library to classpath in gradle pluign
+- [ ] Automatically include this library to classpath in gradle plugin
 - [x] Generating visitor and accept method
-    - [x] Generating visitor abstract class
-    - [x] Generating accept method
-    - [x] Provide Compilation Error
+  - [x] Generating visitor abstract class
+  - [x] Generating accept method
+  - [x] Provide Compilation Error
 - [ ] Generating calling accept from when
     - [x] Generating calling accept from when
       > However, currently not supported to use outer scope variables *needs help*
