@@ -97,8 +97,6 @@ class AnnotationsChecker : DeclarationChecker {
             wasError = true
         }
 
-        // TODO: remove this Suppress when accept generation was added
-        @Suppress("CanBeVal")
         var checkHasAcceptDecl = true
 
         declaration as KtClassOrObject
@@ -114,8 +112,7 @@ class AnnotationsChecker : DeclarationChecker {
             GenerateVisitorValueConstant.getFrom(visitorType.annotations) != null -> {
                 // no check for visitor class because checked by @GenerateVisitor
                 // no check for HasAccept because it will be generated.
-                // TODO: uncomment when HasAccept generation is enabled
-                //checkHasAcceptDecl = false
+                checkHasAcceptDecl = false
             }
             else -> {
                 if (visitorType.kind != ClassKind.CLASS) {
@@ -133,6 +130,27 @@ class AnnotationsChecker : DeclarationChecker {
             // val generateAccept // TODO: GenerateAccept checking
         }
 
+        fun checkHasAccept(classDesc: ClassDescriptor, checkHasAcceptDecl: Boolean) {
+            val hasAccept = HasAcceptValueConstant.getFrom(classDesc.annotations)
+            if (hasAccept == null && checkHasAcceptDecl) {
+                report(NO_HAS_ACCEPT_AT.on(classDesc.source.getPsi() ?: annotationPsi ?: declaration,
+                    descriptor.defaultType,
+                    classDesc.defaultType))
+                return
+            }
+            if (hasAccept != null) {
+                if (hasAccept.rootClass.resolveClassifierOrNull(context.moduleDescriptor)?.typeConstructor
+                    != descriptor.typeConstructor
+                ) {
+                    report(NO_HAS_ACCEPT_AT.on(classDesc.source.getPsi() ?: annotationPsi ?: declaration,
+                        descriptor.defaultType,
+                        classDesc.defaultType))
+                    return
+                }
+            }
+        }
+
+        checkHasAccept(descriptor, checkHasAcceptDecl)
         // subclasses
         for (subclass in hasVisitor.subclasses) {
             val subclassDesc = subclass.resolveClassOrNull(context.moduleDescriptor)
@@ -144,23 +162,7 @@ class AnnotationsChecker : DeclarationChecker {
                 report(INVALID_SUBCLASS.on(annotationPsi ?: declaration, subclass))
                 continue
             }
-            val hasAccept = HasAcceptValueConstant.getFrom(subclassDesc.annotations)
-            if (hasAccept == null && checkHasAcceptDecl) {
-                report(NO_HAS_ACCEPT_AT.on(subclassDesc.source.getPsi() ?: annotationPsi ?: declaration,
-                    descriptor.defaultType,
-                    subclassDesc.defaultType))
-                continue
-            }
-            if (hasAccept != null) {
-                if (hasAccept.rootClass.resolveClassifierOrNull(context.moduleDescriptor)?.typeConstructor
-                    != descriptor.typeConstructor
-                ) {
-                    report(NO_HAS_ACCEPT_AT.on(subclassDesc.source.getPsi() ?: annotationPsi ?: declaration,
-                        descriptor.defaultType,
-                        subclassDesc.defaultType))
-                    continue
-                }
-            }
+            checkHasAccept(subclassDesc, checkHasAcceptDecl)
         }
 
         // accept

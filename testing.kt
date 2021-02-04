@@ -52,22 +52,17 @@ fun block(block1: Sealed) {
     ],
     hasCustomDataParam = true,
 )
-@HasAccept(visitName = "visitSealed", rootClass = Sealed::class)
 sealed class Sealed {
     abstract fun <R, D> accept(visitor: Sealed.Visitor<R, D>, data: D): R
 
-    @HasAccept(visitName = "visitValue1", rootClass = Sealed::class)
     class Value1 : Sealed() {
         override fun <R, D> accept(visitor: Sealed.Visitor<R, D>, data: D): R = visitor.visitValue1(this, data)
         fun dome() {}
     }
-    @HasAccept(visitName = "visitValue2", rootClass = Sealed::class)
     class Value2 : Sealed() {
         override fun <R, D> accept(visitor: Sealed.Visitor<R, D>, data: D): R = visitor.visitValue2(this, data)
     }
-    @HasAccept(visitName = "visitSealed1", rootClass = Sealed::class)
     sealed class Sealed1 : Sealed() {
-        @HasAccept(visitName = "visitValue3", rootClass = Sealed::class)
         class Value3 : Sealed1() {
             override fun <R, D> accept(visitor: Sealed.Visitor<R, D>, data: D): R = visitor.visitValue3(this, data)
             @HasAccept(visitName = "visitValue3Companion", rootClass = Sealed::class)
@@ -75,7 +70,6 @@ sealed class Sealed {
                 override fun <R, D> accept(visitor: Sealed.Visitor<R, D>, data: D): R = visitor.visitValue3Companion(this, data)
             }
         }
-        @HasAccept(visitName = "visitValue4", rootClass = Sealed::class)
         object Value4 : Sealed1() {
             override fun <R, D> accept(visitor: Sealed.Visitor<R, D>, data: D): R = visitor.visitValue4(this, data)
         }
