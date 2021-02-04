@@ -22,5 +22,5 @@ public @interface GenerateValueClass {
      */
     Class<?> forClass() default Object.class;
 
-    boolean isForIr() default true;
+    TargetFormat targetFormat();
 }

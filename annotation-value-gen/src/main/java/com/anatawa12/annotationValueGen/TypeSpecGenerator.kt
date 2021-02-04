@@ -10,12 +10,16 @@ object TypeSpecGenerator {
         valueClassName: ClassName,
         annotationName: ClassName,
         annotationClassInfo: AnnotationClassInfo,
-        forIr: Boolean,
+        targetFormat: TargetFormat,
     ): TypeSpec {
         return TypeSpec.classBuilder(valueClassName).apply {
             addModifiers(Modifier.PUBLIC, Modifier.FINAL)
 
-            val generatedFromType = if (forIr) S.irConstructorCall else S.annotationDescriptor
+            val generatedFromType = when (targetFormat) {
+                TargetFormat.KotlinIrCompiler -> S.irConstructorCall
+                TargetFormat.KotlinDescriptor -> S.annotationDescriptor
+            }
+
             val builderName = valueClassName.nestedClass("Builder")
             addType(generateBuilder(builderName, valueClassName, annotationClassInfo, generatedFromType))
 
@@ -149,118 +153,126 @@ object TypeSpecGenerator {
                 addStatement("return \$N", annotationField)
             }.build())
 
-            if (forIr) {
-                addMethod(MethodSpec.methodBuilder("getFrom").apply {
-                    addAnnotation(Nullable::class.java)
-                    addModifiers(Modifier.PUBLIC, Modifier.STATIC)
-                    addParameter(ParameterSpec.builder(ParameterizedTypeName.get(S.list, S.irConstructorCall), "calls")
-                        .addAnnotation(NotNull::class.java)
-                        .build())
-                    returns(valueClassName)
+            when (targetFormat) {
+                TargetFormat.KotlinIrCompiler -> {
+                    addMethod(MethodSpec.methodBuilder("getFrom").apply {
+                        addAnnotation(Nullable::class.java)
+                        addModifiers(Modifier.PUBLIC, Modifier.STATIC)
+                        addParameter(ParameterSpec.builder(ParameterizedTypeName.get(S.list, S.irConstructorCall),
+                            "calls")
+                            .addAnnotation(NotNull::class.java)
+                            .build())
+                        returns(valueClassName)
 
-                    CodeBlockScope.make(this::addCode) {
-                        beg("for (${type(S.irConstructorCall)} call : calls)")
-                        kotlin.run {
-                            add("if (${type(valueClassName)}.isClassType(call.getType(), ${name(annotationField)}.toUnsafe()))")
-                            left("return ${type(valueClassName)}.fromIrConstructorCall(call);")
-                        }
-                        end()
-                        add("return null;")
-                    }
-                }.build())
-
-                addMethod(MethodSpec.methodBuilder("fromIrConstructorCall").apply {
-                    addModifiers(Modifier.PUBLIC, Modifier.STATIC)
-                    returns(valueClassName)
-                    addParameter(ParameterSpec.builder(S.irConstructorCall, "call")
-                        .addAnnotation(NotNull::class.java)
-                        .build())
-
-                    CodeBlockScope.make(this::addCode) {
-                        add("${type(S.objects)}.requireNonNull(call, ${str("call must not be null")});")
-                        add("${type(S.irConstructor)} function = call.getSymbol().getOwner();")
-                        add("if (!${type(valueClassName)}.isClassType(function.getReturnType(), ${name(annotationField)}.toUnsafe()))")
-                        left("throw new ${type(S.illegalArgumentException)}(${str("the call does not calls ${annotationName.simpleName()}")});")
-                        add("")
-                        add("${type(builderName)} builder = builder();")
-                        add("")
-                        beg("for (${type(S.irValueParameter)} valueParameter : function.getValueParameters())")
-                        kotlin.run {
-                            add("${type(S.irExpression)} value = call.getValueArgument(valueParameter.getIndex());")
-                            add("if (value == null) continue;")
-                            beg("switch (valueParameter.getName().getIdentifier())")
+                        CodeBlockScope.make(this::addCode) {
+                            beg("for (${type(S.irConstructorCall)} call : calls)")
                             kotlin.run {
-                                for ((name, typeWithDefault) in annotationClassInfo.values) {
-                                    add("case ${str(name)}:")
-                                    indent()
-                                    add("builder.${name(prefixedName("with", name))}(${
-                                        lit(typeWithDefault.type.fromValue("value"))
-                                    });")
-                                    add("break;")
-                                    unindent()
-                                }
+                                add("if (${type(valueClassName)}.isClassType(call.getType(), ${name(annotationField)}.toUnsafe()))")
+                                left("return ${type(valueClassName)}.fromIrConstructorCall(call);")
                             }
                             end()
+                            add("return null;")
                         }
-                        end()
-                        add("")
-                        add("return builder.build(call);")
-                    }
-                }.build())
-            } else {
-                addMethod(MethodSpec.methodBuilder("getFrom").apply {
-                    addAnnotation(Nullable::class.java)
-                    addModifiers(Modifier.PUBLIC, Modifier.STATIC)
-                    addParameter(ParameterSpec.builder(S.annotations, "annotations")
-                        .addAnnotation(NotNull::class.java)
-                        .build())
-                    returns(valueClassName)
+                    }.build())
 
-                    CodeBlockScope.make(this::addCode) {
-                        add("${type(S.annotationDescriptor)} desc = annotations.findAnnotation(${name(annotationField)});")
-                        add("if (desc == null)\n")
-                        left("return null;\n")
-                        add("return ${type(valueClassName)}.fromAnnotationDescriptor(desc);\n")
-                    }
-                }.build())
+                    addMethod(MethodSpec.methodBuilder("fromIrConstructorCall").apply {
+                        addModifiers(Modifier.PUBLIC, Modifier.STATIC)
+                        returns(valueClassName)
+                        addParameter(ParameterSpec.builder(S.irConstructorCall, "call")
+                            .addAnnotation(NotNull::class.java)
+                            .build())
 
-                addMethod(MethodSpec.methodBuilder("fromAnnotationDescriptor").apply {
-                    addModifiers(Modifier.PUBLIC, Modifier.STATIC)
-                    returns(valueClassName)
-                    addParameter(ParameterSpec.builder(S.annotationDescriptor, "desc")
-                        .addAnnotation(NotNull::class.java)
-                        .build())
-
-                    CodeBlockScope.make(this::addCode) {
-                        add("${type(S.objects)}.requireNonNull(desc, ${str("desc must not be null")});")
-                        add("if (!${name(annotationField)}.equals(desc.getFqName()))")
-                        left("throw new ${type(S.illegalArgumentException)}(${str("the descriptor is not of ${annotationName.simpleName()}")});")
-                        add("")
-                        add("${type(builderName)} builder = builder();")
-                        add("")
-                        beg("for (${type(S.nameAndConstantValueEntry)} entry : desc.getAllValueArguments().entrySet())")
-                        kotlin.run {
-                            add("${type(S.constantValueStar)} value = entry.getValue();")
-                            add("if (value == null) continue;")
-                            beg("switch (entry.getKey().getIdentifier())")
+                        CodeBlockScope.make(this::addCode) {
+                            add("${type(S.objects)}.requireNonNull(call, ${str("call must not be null")});")
+                            add("${type(S.irConstructor)} function = call.getSymbol().getOwner();")
+                            add("if (!${type(valueClassName)}.isClassType(function.getReturnType(), ${
+                                name(annotationField)
+                            }.toUnsafe()))")
+                            left("throw new ${type(S.illegalArgumentException)}(${str("the call does not calls ${annotationName.simpleName()}")});")
+                            add("")
+                            add("${type(builderName)} builder = builder();")
+                            add("")
+                            beg("for (${type(S.irValueParameter)} valueParameter : function.getValueParameters())")
                             kotlin.run {
-                                for ((name, typeWithDefault) in annotationClassInfo.values) {
-                                    add("case ${str(name)}:")
-                                    indent()
-                                    add("builder.${name(prefixedName("with", name))}(${
-                                        lit(typeWithDefault.type.fromConstant("value"))
-                                    });")
-                                    add("break;")
-                                    unindent()
+                                add("${type(S.irExpression)} value = call.getValueArgument(valueParameter.getIndex());")
+                                add("if (value == null) continue;")
+                                beg("switch (valueParameter.getName().getIdentifier())")
+                                kotlin.run {
+                                    for ((name, typeWithDefault) in annotationClassInfo.values) {
+                                        add("case ${str(name)}:")
+                                        indent()
+                                        add("builder.${name(prefixedName("with", name))}(${
+                                            lit(typeWithDefault.type.fromValue("value"))
+                                        });")
+                                        add("break;")
+                                        unindent()
+                                    }
                                 }
+                                end()
                             }
                             end()
+                            add("")
+                            add("return builder.build(call);")
                         }
-                        end()
-                        add("")
-                        add("return builder.build(desc);")
-                    }
-                }.build())
+                    }.build())
+                }
+                TargetFormat.KotlinDescriptor -> {
+                    addMethod(MethodSpec.methodBuilder("getFrom").apply {
+                        addAnnotation(Nullable::class.java)
+                        addModifiers(Modifier.PUBLIC, Modifier.STATIC)
+                        addParameter(ParameterSpec.builder(S.annotations, "annotations")
+                            .addAnnotation(NotNull::class.java)
+                            .build())
+                        returns(valueClassName)
+
+                        CodeBlockScope.make(this::addCode) {
+                            add("${type(S.annotationDescriptor)} desc = annotations.findAnnotation(${
+                                name(annotationField)
+                            });")
+                            add("if (desc == null)\n")
+                            left("return null;\n")
+                            add("return ${type(valueClassName)}.fromAnnotationDescriptor(desc);\n")
+                        }
+                    }.build())
+
+                    addMethod(MethodSpec.methodBuilder("fromAnnotationDescriptor").apply {
+                        addModifiers(Modifier.PUBLIC, Modifier.STATIC)
+                        returns(valueClassName)
+                        addParameter(ParameterSpec.builder(S.annotationDescriptor, "desc")
+                            .addAnnotation(NotNull::class.java)
+                            .build())
+
+                        CodeBlockScope.make(this::addCode) {
+                            add("${type(S.objects)}.requireNonNull(desc, ${str("desc must not be null")});")
+                            add("if (!${name(annotationField)}.equals(desc.getFqName()))")
+                            left("throw new ${type(S.illegalArgumentException)}(${str("the descriptor is not of ${annotationName.simpleName()}")});")
+                            add("")
+                            add("${type(builderName)} builder = builder();")
+                            add("")
+                            beg("for (${type(S.nameAndConstantValueEntry)} entry : desc.getAllValueArguments().entrySet())")
+                            kotlin.run {
+                                add("${type(S.constantValueStar)} value = entry.getValue();")
+                                add("if (value == null) continue;")
+                                beg("switch (entry.getKey().getIdentifier())")
+                                kotlin.run {
+                                    for ((name, typeWithDefault) in annotationClassInfo.values) {
+                                        add("case ${str(name)}:")
+                                        indent()
+                                        add("builder.${name(prefixedName("with", name))}(${
+                                            lit(typeWithDefault.type.fromConstant("value"))
+                                        });")
+                                        add("break;")
+                                        unindent()
+                                    }
+                                }
+                                end()
+                            }
+                            end()
+                            add("")
+                            add("return builder.build(desc);")
+                        }
+                    }.build())
+                }
             }
 
             addMethod(MethodSpec.methodBuilder("isClassType").apply {

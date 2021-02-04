@@ -15,12 +15,14 @@ import javax.lang.model.type.TypeMirror
 
 
 sealed class AnnotationValueType<T : Any>(val name: kotlin.String) {
-    open fun typeName(forIr: kotlin.Boolean, errorHandler: ErrorHandler): TypeName? = typeName(errorHandler)
-    open fun typeName(errorHandler: ErrorHandler): TypeName? = error("typeName")
+    open fun typeName(targetFormat: TargetFormat, errorHandler: ErrorHandler): TypeName? = typeName()
+    protected open fun typeName(): TypeName? =
+        error("typeName for unknown is not supported for $this")
+
     abstract fun literalOf(value: T): CodeBlock
 
     object Byte : AnnotationValueType<kotlin.Byte>("byte") {
-        override fun typeName(errorHandler: ErrorHandler): TypeName = TypeName.BYTE
+        override fun typeName(): TypeName = TypeName.BYTE
         override fun literalOf(value: kotlin.Byte): CodeBlock = CodeBlock.of("\$L", value)
         override fun fromValue(name: kotlin.String): CodeBlock =
             CodeBlock.of("(\$T)((\$T)\$N).getValue()", TypeName.BYTE, S.irConst, name)
@@ -30,7 +32,7 @@ sealed class AnnotationValueType<T : Any>(val name: kotlin.String) {
     }
 
     object Short : AnnotationValueType<kotlin.Short>("short") {
-        override fun typeName(errorHandler: ErrorHandler): TypeName = TypeName.SHORT
+        override fun typeName(): TypeName = TypeName.SHORT
         override fun literalOf(value: kotlin.Short): CodeBlock = CodeBlock.of("\$L", value)
         override fun fromValue(name: kotlin.String): CodeBlock =
             CodeBlock.of("(\$T)((\$T)\$N).getValue()", TypeName.SHORT, S.irConst, name)
@@ -40,7 +42,7 @@ sealed class AnnotationValueType<T : Any>(val name: kotlin.String) {
     }
 
     object Int : AnnotationValueType<kotlin.Int>("int") {
-        override fun typeName(errorHandler: ErrorHandler): TypeName = TypeName.INT
+        override fun typeName(): TypeName = TypeName.INT
         override fun literalOf(value: kotlin.Int): CodeBlock = CodeBlock.of("\$L", value)
         override fun fromValue(name: kotlin.String): CodeBlock =
             CodeBlock.of("(\$T)((\$T)\$N).getValue()", TypeName.INT, S.irConst, name)
@@ -50,7 +52,7 @@ sealed class AnnotationValueType<T : Any>(val name: kotlin.String) {
     }
 
     object Long : AnnotationValueType<kotlin.Long>("long") {
-        override fun typeName(errorHandler: ErrorHandler): TypeName = TypeName.LONG
+        override fun typeName(): TypeName = TypeName.LONG
         override fun literalOf(value: kotlin.Long): CodeBlock = CodeBlock.of("\$LL", value)
         override fun fromValue(name: kotlin.String): CodeBlock =
             CodeBlock.of("(\$T)((\$T)\$N).getValue()", TypeName.LONG, S.irConst, name)
@@ -60,7 +62,7 @@ sealed class AnnotationValueType<T : Any>(val name: kotlin.String) {
     }
 
     object Char : AnnotationValueType<kotlin.Char>("char") {
-        override fun typeName(errorHandler: ErrorHandler): TypeName = TypeName.CHAR
+        override fun typeName(): TypeName = TypeName.CHAR
         override fun literalOf(value: kotlin.Char): CodeBlock = CodeBlock.of("((char)\$L)", value.toInt())
         override fun fromValue(name: kotlin.String): CodeBlock =
             CodeBlock.of("(\$T)((\$T)\$N).getValue()", TypeName.CHAR, S.irConst, name)
@@ -70,7 +72,7 @@ sealed class AnnotationValueType<T : Any>(val name: kotlin.String) {
     }
 
     object Float : AnnotationValueType<kotlin.Float>("float") {
-        override fun typeName(errorHandler: ErrorHandler): TypeName = TypeName.FLOAT
+        override fun typeName(): TypeName = TypeName.FLOAT
         override fun literalOf(value: kotlin.Float): CodeBlock = CodeBlock.of("\$Lf", value)
         override fun fromValue(name: kotlin.String): CodeBlock =
             CodeBlock.of("(\$T)((\$T)\$N).getValue()", TypeName.FLOAT, S.irConst, name)
@@ -80,7 +82,7 @@ sealed class AnnotationValueType<T : Any>(val name: kotlin.String) {
     }
 
     object Double : AnnotationValueType<kotlin.Double>("double") {
-        override fun typeName(errorHandler: ErrorHandler): TypeName = TypeName.DOUBLE
+        override fun typeName(): TypeName = TypeName.DOUBLE
         override fun literalOf(value: kotlin.Double): CodeBlock = CodeBlock.of("\$L", value)
         override fun fromValue(name: kotlin.String): CodeBlock =
             CodeBlock.of("(\$T)((\$T)\$N).getValue()", TypeName.DOUBLE, S.irConst, name)
@@ -90,7 +92,7 @@ sealed class AnnotationValueType<T : Any>(val name: kotlin.String) {
     }
 
     object Boolean : AnnotationValueType<kotlin.Boolean>("boolean") {
-        override fun typeName(errorHandler: ErrorHandler): TypeName = TypeName.BOOLEAN
+        override fun typeName(): TypeName = TypeName.BOOLEAN
         override fun literalOf(value: kotlin.Boolean): CodeBlock = CodeBlock.of("\$L", value)
         override fun fromValue(name: kotlin.String): CodeBlock =
             CodeBlock.of("(\$T)((\$T)\$N).getValue()", TypeName.BOOLEAN, S.irConst, name)
@@ -100,7 +102,7 @@ sealed class AnnotationValueType<T : Any>(val name: kotlin.String) {
     }
 
     object String : AnnotationValueType<kotlin.String>("String") {
-        override fun typeName(errorHandler: ErrorHandler): TypeName = ClassName.get(kotlin.String::class.java)
+        override fun typeName(): TypeName = ClassName.get(kotlin.String::class.java)
         override fun literalOf(value: kotlin.String): CodeBlock = CodeBlock.of("\$S", value)
         override fun fromValue(name: kotlin.String): CodeBlock =
             CodeBlock.of("(\$T)((\$T)\$N).getValue()", kotlin.String::class.java, S.irConst, name)
@@ -110,8 +112,10 @@ sealed class AnnotationValueType<T : Any>(val name: kotlin.String) {
     }
 
     object Class : AnnotationValueType<TypeMirror>("Class") {
-        override fun typeName(forIr: kotlin.Boolean, errorHandler: ErrorHandler): TypeName =
-            if (forIr) S.irType else S.kClassValueValue
+        override fun typeName(targetFormat: TargetFormat, errorHandler: ErrorHandler): TypeName = when (targetFormat) {
+            TargetFormat.KotlinIrCompiler -> S.irType
+            TargetFormat.KotlinDescriptor -> S.kClassValueValue
+        }
 
         override fun literalOf(value: TypeMirror): CodeBlock = error("default value of Class<?> is not supported")
         override fun fromValue(name: kotlin.String): CodeBlock =
@@ -122,7 +126,7 @@ sealed class AnnotationValueType<T : Any>(val name: kotlin.String) {
     }
 
     class Enum(val type: DeclaredType) : AnnotationValueType<VariableElement>(type.toString()) {
-        override fun typeName(errorHandler: ErrorHandler) = ClassName.get(type.asElement() as TypeElement)!!
+        override fun typeName() = ClassName.get(type.asElement() as TypeElement)!!
         override fun literalOf(value: VariableElement): CodeBlock =
             CodeBlock.of("\$T.\$N", TypeName.get(type), value.simpleName.toString())
 
@@ -140,7 +144,7 @@ sealed class AnnotationValueType<T : Any>(val name: kotlin.String) {
 
     class Annotation(val type: DeclaredType, val info: AnnotationClassInfo) :
         AnnotationValueType<AnnotationMirror>(type.toString()) {
-        override fun typeName(errorHandler: ErrorHandler) = info.fqName
+        override fun typeName() = info.fqName
         override fun literalOf(value: AnnotationMirror): CodeBlock {
             return CodeBlock.builder().apply {
                 add("\$T.builder()\n", info.fqName)
@@ -169,11 +173,11 @@ sealed class AnnotationValueType<T : Any>(val name: kotlin.String) {
     }
 
     class Array<T : Any>(val type: AnnotationValueType<T>) : AnnotationValueType<List<T>>(type.name + "[]") {
-        override fun typeName(forIr: kotlin.Boolean, errorHandler: ErrorHandler) =
-            type.typeName(forIr, errorHandler)?.let { ParameterizedTypeName.get(S.list, it) }
+        override fun typeName(targetFormat: TargetFormat, errorHandler: ErrorHandler) =
+            type.typeName(targetFormat, errorHandler)?.let { ParameterizedTypeName.get(S.list, it) }
 
         override fun literalOf(value: List<T>): CodeBlock = CodeBlock.builder().apply {
-            add("\$T.asList(new \$T[]{\n", S.arrays, type.typeName(false) { error("invalid type name") })
+            add("\$T.asList(new \$T[]{\n", S.arrays, type.typeName())
             indent()
             for (t in value) {
                 add("\$L", type.literalOf(t))

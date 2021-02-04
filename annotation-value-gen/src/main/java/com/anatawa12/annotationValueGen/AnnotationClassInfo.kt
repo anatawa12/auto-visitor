@@ -19,7 +19,7 @@ class AnnotationClassInfo(
                 if (enclosedElement.kind != ElementKind.METHOD) continue
                 enclosedElement as ExecutableElement
 
-                val typeWithDefault = getTypeWithDefault(enclosedElement, generate.isForIr, messager)
+                val typeWithDefault = getTypeWithDefault(enclosedElement, generate.targetFormat, messager)
                 if (typeWithDefault == null) {
                     wasError = true
                     continue
@@ -33,24 +33,28 @@ class AnnotationClassInfo(
             )
         }
 
-        private fun typeNameFrom(type: AnnotationValueType<*>, forIr: Boolean, errorHandler: ErrorHandler): TypeName? {
-            return type.typeName(forIr, errorHandler)
+        private fun typeNameFrom(
+            type: AnnotationValueType<*>,
+            targetFormat: TargetFormat,
+            errorHandler: ErrorHandler,
+        ): TypeName? {
+            return type.typeName(targetFormat, errorHandler)
         }
 
         private fun getTypeWithDefault(
             enclosedElement: ExecutableElement,
-            forIr: Boolean,
+            targetFormat: TargetFormat,
             messager: Messager,
         ): TypeWithDefault<*>? {
             val type = AnnotationValueType.from(enclosedElement.returnType, makeErrorHandler(messager, enclosedElement))
                 ?: return null
-            return getTypeWithDefault(enclosedElement, type, forIr, messager)
+            return getTypeWithDefault(enclosedElement, type, targetFormat, messager)
         }
 
         private fun <T : Any> getTypeWithDefault(
             enclosedElement: ExecutableElement,
             type: AnnotationValueType<T>,
-            forIr: Boolean,
+            targetFormat: TargetFormat,
             messager: Messager,
         ): TypeWithDefault<T>? {
             val errorHandler = makeErrorHandler(messager, enclosedElement)
@@ -58,7 +62,7 @@ class AnnotationClassInfo(
                 return errorHandler("default value for Class<*> is not supported")
             return TypeWithDefault(
                 type,
-                typeNameFrom(type, forIr = forIr, errorHandler = errorHandler) ?: return null,
+                typeNameFrom(type, targetFormat = targetFormat, errorHandler = errorHandler) ?: return null,
                 enclosedElement.defaultValue?.run { get(type, errorHandler) ?: return null },
             )
         }

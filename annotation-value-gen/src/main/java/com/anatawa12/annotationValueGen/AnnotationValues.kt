@@ -3,12 +3,13 @@ package com.anatawa12.annotationValueGen
 import javax.lang.model.AnnotatedConstruct
 import javax.lang.model.element.AnnotationMirror
 import javax.lang.model.element.TypeElement
+import javax.lang.model.element.VariableElement
 import javax.lang.model.type.TypeMirror
 
 data class GenerateValueClassValue(
     val value: String,
     val forClass: TypeMirror?,
-    val isForIr: Boolean,
+    val targetFormat: TargetFormat,
 ) {
     companion object {
         fun findFrom(construct: AnnotatedConstruct): GenerateValueClassValue? =
@@ -25,18 +26,20 @@ data class GenerateValueClassValue(
         fun from(mirror: AnnotationMirror): GenerateValueClassValue {
             var value: String? = null
             var forClass: TypeMirror? = null
-            var isForIr: Boolean? = null
+            var targetFormat: TargetFormat? = null
             for ((elementKey, elementValue) in mirror.elementValues) {
                 when (elementKey.simpleName.toString()) {
                     "value" -> value = elementValue.get(AnnotationValueType.String) { error("invalid: value") }
                     "forClass" -> forClass = elementValue.get(AnnotationValueType.Class) { error("invalid: forClass") }
-                    "isForIr" -> isForIr = elementValue.get(AnnotationValueType.Boolean) { error("invalid: isForIr") }
+                    "targetFormat" -> targetFormat = elementValue.value
+                        .let { it as VariableElement }
+                        .let { enumValueOf<TargetFormat>(it.simpleName.toString()) }
                 }
             }
             return GenerateValueClassValue(
                 value = value ?: error("not found: value"),
                 forClass = forClass,
-                isForIr = isForIr ?: error("not found: isForIr"),
+                targetFormat = targetFormat ?: error("not found: targetFormat"),
             )
         }
     }

@@ -59,7 +59,7 @@ class ValueGenAnnotationProcessor : AbstractProcessor() {
         val typeSpec = TypeSpecGenerator.generateClass(valueClassName,
             ClassName.get(element),
             annotationClassInfo,
-            forIr = annotation.isForIr)
+            targetFormat = annotation.targetFormat)
         JavaFile.builder(valueClassName.packageName(), typeSpec)
             .build()
             .writeTo(processingEnv.filer)
