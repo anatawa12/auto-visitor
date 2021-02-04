@@ -8,15 +8,16 @@ import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
 import org.jetbrains.kotlin.cli.jvm.compiler.report
 import org.jetbrains.kotlin.compiler.plugin.ComponentRegistrar
-import org.jetbrains.kotlin.config.CommonConfigurationKeys
 import org.jetbrains.kotlin.config.CompilerConfiguration
+import org.jetbrains.kotlin.config.JVMConfigurationKeys
 import org.jetbrains.kotlin.extensions.StorageComponentContainerContributor
 import org.jetbrains.kotlin.resolve.extensions.SyntheticResolveExtension
 
 @AutoService(ComponentRegistrar::class)
 class AutoVisitorComponentRegistrar : ComponentRegistrar {
     override fun registerProjectComponents(project: MockProject, configuration: CompilerConfiguration) {
-        if (!configuration.getBoolean(CommonConfigurationKeys.USE_FIR))
+        // TODO: error for js legacy backend
+        if (configuration.get(JVMConfigurationKeys.IR) == false)
             configuration.report(CompilerMessageSeverity.ERROR,
                 "ir compiler is required for auto-visitor. Please enable with '-Xuse-ir'.")
 
