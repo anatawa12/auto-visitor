@@ -2,6 +2,7 @@ rootProject.name = "auto-visitor"
 include("compiler")
 include("annotation-value-gen")
 include("lib")
+include("gradle-plugin")
 
 val enableBenchmark = System.getenv("ENABLE_AUTO_VISITOR_BENCHMARKS") == "ENABLED"
 //val enableBenchmark = true
