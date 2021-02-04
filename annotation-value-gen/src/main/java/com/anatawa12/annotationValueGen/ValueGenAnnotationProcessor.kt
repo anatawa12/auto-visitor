@@ -9,6 +9,7 @@ import javax.annotation.processing.RoundEnvironment
 import javax.lang.model.SourceVersion
 import javax.lang.model.element.ElementKind
 import javax.lang.model.element.TypeElement
+import javax.lang.model.type.DeclaredType
 import javax.tools.Diagnostic
 
 @AutoService(Processor::class)
@@ -23,11 +24,12 @@ class ValueGenAnnotationProcessor : AbstractProcessor() {
                 messager.printMessage(Diagnostic.Kind.ERROR, "Can be applied to class.")
                 return true
             }
-            val annotation = element.getAnnotation(GenerateValueClass::class.java)
             element as TypeElement
+
+            val annotation = GenerateValueClassValue.findFrom(element)
             if (annotation != null)
                 processAnnotation(element, annotation)
-            val annotations = element.getAnnotation(GenerateValueClassList::class.java)
+            val annotations = GenerateValueClassListValue.findFrom(element)
             for (generateValueClass in annotations?.value.orEmpty()) {
                 processAnnotation(element, generateValueClass)
             }
@@ -36,10 +38,21 @@ class ValueGenAnnotationProcessor : AbstractProcessor() {
         return true
     }
 
-    private fun processAnnotation(element: TypeElement, annotation: GenerateValueClass) {
-        val valueClassName = parseClassName(element,
+    private fun processAnnotation(byType: TypeElement, annotation: GenerateValueClassValue) {
+        val element = annotation.forClass?.let { forClass ->
+            val errorHandler = makeErrorHandler(messager, byType, GenerateValueClass::class.java, "value")
+            val element = forClass
+                .let { it as? DeclaredType }
+                ?.asElement()
+                ?.let { it as? TypeElement }
+                ?: return errorHandler("invalid 'forClass'").run { }
+            if (element.kind != ElementKind.ANNOTATION_TYPE)
+                return errorHandler("invalid 'forClass'").run { }
+            return@let element
+        } ?: byType
+        val valueClassName = parseClassName(byType,
             annotation.value,
-            makeErrorHandler(messager, element, GenerateValueClass::class.java, "value"))
+            makeErrorHandler(messager, byType, GenerateValueClass::class.java, "value"))
             ?: return
         val annotationClassInfo = AnnotationClassInfo.parse(element, annotation, messager)
             ?: return

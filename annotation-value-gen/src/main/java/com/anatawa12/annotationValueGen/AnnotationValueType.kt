@@ -236,7 +236,7 @@ sealed class AnnotationValueType<T : Any>(val name: kotlin.String) {
                         return String
                     if (element.kind != ElementKind.ANNOTATION_TYPE)
                         return errorHandler("invalid annotation value type: class or interface: $type")
-                    val generate = element.getAnnotation(GenerateValueClass::class.java)
+                    val generate = GenerateValueClassValue.findFrom(element)
                         ?: return errorHandler("invalid annotation value type: @interface without @GenerateValueClass: $type")
                     val info = AnnotationClassInfo.parse(element, generate, NopMessager)
                         ?: return errorHandler("contains some invalid value: $type")

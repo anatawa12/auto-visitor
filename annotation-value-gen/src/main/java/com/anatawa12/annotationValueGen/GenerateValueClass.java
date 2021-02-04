@@ -17,5 +17,10 @@ public @interface GenerateValueClass {
      */
     String value();
 
+    /**
+     * generates ValueClass for specified annotation class.
+     */
+    Class<?> forClass() default Object.class;
+
     boolean isForIr() default true;
 }

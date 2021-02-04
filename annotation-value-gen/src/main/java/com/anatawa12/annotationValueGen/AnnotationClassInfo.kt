@@ -12,7 +12,7 @@ class AnnotationClassInfo(
     val values: List<Pair<String, TypeWithDefault<*>>>,
 ) {
     companion object {
-        fun parse(element: TypeElement, generate: GenerateValueClass, messager: Messager): AnnotationClassInfo? {
+        fun parse(element: TypeElement, generate: GenerateValueClassValue, messager: Messager): AnnotationClassInfo? {
             val values = mutableListOf<Pair<String, TypeWithDefault<*>>>()
             var wasError = false
             for (enclosedElement in element.enclosedElements) {
