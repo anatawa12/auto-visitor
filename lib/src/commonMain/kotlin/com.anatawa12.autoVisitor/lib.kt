@@ -6,7 +6,7 @@ import kotlin.contracts.contract
 import kotlin.reflect.KClass
 
 @Target(AnnotationTarget.CLASS)
-@Retention(AnnotationRetention.BINARY)
+@Retention(AnnotationRetention.SOURCE)
 annotation class GenerateVisitor(
     /**
      * The class which has accept.
@@ -15,7 +15,7 @@ annotation class GenerateVisitor(
 )
 
 @Target(AnnotationTarget.CLASS)
-@Retention(AnnotationRetention.BINARY)
+@Retention(AnnotationRetention.SOURCE)
 annotation class GenerateAccept
 
 @Target(AnnotationTarget.CLASS)
