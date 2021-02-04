@@ -202,7 +202,7 @@ object TypeSpecGenerator {
                                         add("case ${str(name)}:")
                                         indent()
                                         add("builder.${name(prefixedName("with", name))}(${
-                                            lit(typeWithDefault.type.fromValue("value"))
+                                            lit(typeWithDefault.type.fromValue(targetFormat, "value"))
                                         });")
                                         add("break;")
                                         unindent()
@@ -259,7 +259,7 @@ object TypeSpecGenerator {
                                         add("case ${str(name)}:")
                                         indent()
                                         add("builder.${name(prefixedName("with", name))}(${
-                                            lit(typeWithDefault.type.fromConstant("value"))
+                                            lit(typeWithDefault.type.fromValue(targetFormat, "value"))
                                         });")
                                         add("break;")
                                         unindent()
