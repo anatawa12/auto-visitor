@@ -61,7 +61,6 @@ class AutoVisitor : CommandLineProcessor {
     override val pluginId: String get() = "autovisitor"
     override val pluginOptions: Collection<AbstractCliOption> get() = emptyList()
     override fun processOption(option: AbstractCliOption, value: String, configuration: CompilerConfiguration) {
-        println("AutoVisitor")
         super.processOption(option, value, configuration)
     }
 }

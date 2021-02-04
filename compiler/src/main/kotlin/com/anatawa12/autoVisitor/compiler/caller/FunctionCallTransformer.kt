@@ -142,8 +142,6 @@ class FunctionCallTransformer(
     override fun visitCall(expression: IrCall): IrExpression {
         //*
         if (expression.symbol == autoVisitor) {
-            println("autoVisitor")
-            expression.dump("")
             check(expression.valueArgumentsCount == 2)
             val valueArgument = expression.getValueArgument(0) ?: error("valueArgument not found")
             val lambda = expression.getValueArgument(1)
@@ -254,8 +252,6 @@ class FunctionCallTransformer(
                     //variable to variable,
                 )
             }
-            println("creatingBlock: ")
-            println(creatingBlock.dump())
 
             return ctx.createCall(valueArgument, creatingBlock)
             // TODO: replace this one
@@ -313,12 +309,9 @@ class VisitableData(
             val (rootType, hasVisitor) = ofType.getHasVisitorValue() ?: return null
             val (methodsByType, visitorConstructor) = hasVisitor.visitorType.checkVisitorType(rootType, hasVisitor)
             val irClass = rootType.classOrNull?.owner ?: return null
-            println("irClass: ")
-            println(irClass.dump())
             val acceptMethod = irClass.functions
                 .filter { isAcceptMethod(it, hasVisitor) }
                 .singleOrNull() ?: return null
-            println("acceptMethod: $acceptMethod")
             return VisitableData(
                 rootType = rootType,
                 visitorType = hasVisitor.visitorType,

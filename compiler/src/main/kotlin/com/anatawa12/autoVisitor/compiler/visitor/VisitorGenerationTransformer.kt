@@ -23,7 +23,6 @@ class VisitorGenerationTransformer(
     @OptIn(ObsoleteDescriptorBasedAPI::class)
     override fun visitSimpleFunction(declaration: IrSimpleFunction): IrStatement {
         val data = declaration.descriptor.getUserData(VisitMethodData) ?: return super.visitSimpleFunction(declaration)
-        println("VisitMethodData: $data")
         if (data.superClass == null) return super.visitSimpleFunction(declaration)
         val superClass = data.superClass//!!
         val name = data.name!!
