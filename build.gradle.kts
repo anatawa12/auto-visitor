@@ -3,7 +3,7 @@ plugins {
     kotlin("multiplatform") version "1.4.21" apply false
 }
 
-group = "org.example"
+group = "com.anatawa12.autoVisitor"
 version = "1.0-SNAPSHOT"
 
 repositories {

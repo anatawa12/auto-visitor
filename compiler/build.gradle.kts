@@ -5,6 +5,9 @@ plugins {
     kotlin("kapt")
 }
 
+group = project(":").group
+version = project(":").version
+
 tasks.withType<KotlinCompile>() {
     kotlinOptions {
         jvmTarget = "1.8"

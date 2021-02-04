@@ -5,8 +5,8 @@ plugins {
     kotlin("kapt")
 }
 
-group = "org.example"
-version = "1.0-SNAPSHOT"
+group = project(":").group
+version = project(":").version
 
 repositories {
     mavenCentral()
