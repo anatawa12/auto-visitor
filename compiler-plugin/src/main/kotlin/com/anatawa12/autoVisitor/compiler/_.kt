@@ -21,7 +21,7 @@ fun testing() {
 
 fun main(args: Array<String>) {
     require(args.isEmpty())
-    val pp = "./compiler/build/tmp/kapt3/classes/main" // TODO: change path
+    val pp = "./compiler-plugin/build/tmp/kapt3/classes/main" // TODO: change path
     val cp = mutableListOf<String>()
     cp += java.io.File(AutoVisitorCommandLineProcessor::class.java.protectionDomain.codeSource.location.toURI())
         .toString()
