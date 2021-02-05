@@ -34,6 +34,9 @@ class AnnotationsChecker : DeclarationChecker {
         GenerateAcceptValueConstant.getFrom(descriptor.annotations)?.let { generateAccept ->
             checkGenerateAccept(generateAccept, declaration, descriptor, context)
         }
+        HasAcceptValueConstant.getFrom(descriptor.annotations)?.let { hasVisitor ->
+            checkHasAccept(hasVisitor, declaration, descriptor, context)
+        }
     }
 
     private fun checkGenerateAccept(
@@ -228,6 +231,29 @@ class AnnotationsChecker : DeclarationChecker {
             })
         if (acceptFunction == null)
             report(ACCEPT_FUNCTION_NOT_FOUND.on(annotationPsi ?: declaration))
+    }
+
+    private fun checkHasAccept(
+        hasAccept: HasAcceptValueConstant,
+        declaration: KtDeclaration,
+        descriptor: DeclarationDescriptor,
+        context: DeclarationCheckerContext,
+    ) {
+        descriptor as ClassDescriptor
+        val rootClass = hasAccept.rootClass.resolveClassifierOrNull(context.moduleDescriptor)
+            ?: return context.trace.report(INVALID_ROOT_CLASS
+                .on(hasAccept.generatedFrom()!!.source.getPsi() ?: declaration, hasAccept.rootClass))
+
+        val hasVisitor = HasVisitorValueConstant.getFrom(rootClass.annotations)
+            ?: return context.trace.report(NO_HAS_VISITOR_AT_ROOT_CLASS
+                .on(hasAccept.generatedFrom()!!.source.getPsi() ?: declaration, hasAccept.rootClass))
+
+        if (!hasVisitor.subclasses.asSequence()
+                .mapNotNull { it.resolveClassOrNull(context.moduleDescriptor) }
+                .any { it.typeConstructor == descriptor.typeConstructor }
+        )
+            return context.trace.report(THIS_IS_NOT_SUBCLASS_OF
+                .on(hasAccept.generatedFrom()!!.source.getPsi() ?: declaration, hasAccept.rootClass))
     }
 
     private fun checkVisitorClassTypeParams(

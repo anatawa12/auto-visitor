@@ -206,6 +206,30 @@ class AnnotationsChecker(
             report(ACCEPT_FUNCTION_NOT_FOUND.on(declaration, annotationMirror))
     }
 
+    fun checkHasAccept(
+        hasAccept: HasAcceptValue,
+        declaration: TypeElement,
+    ) {
+        fun report(diagnostic: Diagnostic) {
+            diagnostic.run(messager)
+        }
+
+        val rootClass = hasAccept.rootClass.resolveClassOrNull()
+            ?: return report(INVALID_ROOT_CLASS
+                .on(hasAccept.rootClass, declaration, hasAccept.generatedFrom()!!))
+
+        val hasVisitor = HasVisitorValue.getFrom(rootClass)
+            ?: return report(NO_HAS_VISITOR_AT_ROOT_CLASS
+                .on(hasAccept.rootClass, declaration, hasAccept.generatedFrom()!!))
+
+        if (!hasVisitor.subclasses.asSequence()
+                .mapNotNull { it.resolveClassOrNull() }
+                .any { types.isSameType(it.asType(), types.erasure(declaration.asType())) }
+        )
+            return report(THIS_IS_NOT_SUBCLASS_OF
+                .on(hasAccept.rootClass, declaration, hasAccept.generatedFrom()!!))
+    }
+
     private fun checkVisitorClassTypeParams(
         visitorType: TypeElement,
         hasVisitor: HasVisitorValue,

@@ -54,6 +54,14 @@ public class AutoVisitorAnnotationErrors {
     @NotNull
     public static final DiagnosticFactory0<PsiElement> VISITOR_TYPE_VARIABLE_MUST_NOT_HAVE_BOUNDS = DiagnosticFactory0.create(Severity.ERROR);
 
+    // @HasAnnotation
+    @NotNull
+    public static final DiagnosticFactory1<PsiElement, KClassValue.Value> INVALID_ROOT_CLASS = DiagnosticFactory1.create(Severity.ERROR);
+    @NotNull
+    public static final DiagnosticFactory1<PsiElement, KClassValue.Value> NO_HAS_VISITOR_AT_ROOT_CLASS = DiagnosticFactory1.create(Severity.ERROR);
+    @NotNull
+    public static final DiagnosticFactory1<PsiElement, KClassValue.Value> THIS_IS_NOT_SUBCLASS_OF = DiagnosticFactory1.create(Severity.ERROR);
+
     static {
 
         Errors.Initializer.initializeFactoryNamesAndDefaultErrorMessages(AutoVisitorAnnotationErrors.class,

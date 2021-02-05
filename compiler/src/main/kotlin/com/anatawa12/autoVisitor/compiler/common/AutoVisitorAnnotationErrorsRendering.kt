@@ -95,6 +95,22 @@ object AutoVisitorAnnotationErrorsRendering : DefaultErrorMessages.Extension {
             VISITOR_TYPE_VARIABLE_MUST_NOT_HAVE_BOUNDS,
             "The type variable of visitor cannot have bounds"
         )
+        // @HasAnnotation
+        MAP.put(
+            INVALID_ROOT_CLASS,
+            "invalid root class: ''{0}''",
+            KClassValueValueRenderer,
+        )
+        MAP.put(
+            NO_HAS_VISITOR_AT_ROOT_CLASS,
+            "NO @HasAccept at rootClass: ''{0}''",
+            KClassValueValueRenderer,
+        )
+        MAP.put(
+            THIS_IS_NOT_SUBCLASS_OF,
+            "This class is not subclass of rootClass, ''{0}''",
+            KClassValueValueRenderer,
+        )
     }
 
     override fun getMap(): DiagnosticFactoryToRendererMap = MAP
