@@ -20,22 +20,30 @@ import org.jetbrains.kotlin.types.TypeProjectionImpl
 import org.jetbrains.kotlin.types.Variance
 
 class AnnotationsChecker : DeclarationChecker {
+    fun interface Reporter {
+        fun report(diagnostic: Diagnostic)
+    }
+
     override fun check(
         declaration: KtDeclaration,
         descriptor: DeclarationDescriptor,
         context: DeclarationCheckerContext,
     ) {
         GenerateVisitorValueConstant.getFrom(descriptor.annotations)?.let { generateVisitor ->
-            checkGenerateVisitor(generateVisitor, declaration, descriptor, context)
+            checkGenerateVisitor(generateVisitor, declaration, descriptor, context.moduleDescriptor,
+                context.trace::report)
         }
         HasVisitorValueConstant.getFrom(descriptor.annotations)?.let { hasVisitor ->
-            checkHasVisitor(hasVisitor, declaration, descriptor, context)
+            checkHasVisitor(hasVisitor, declaration, descriptor, context.moduleDescriptor,
+                context.trace::report)
         }
         GenerateAcceptValueConstant.getFrom(descriptor.annotations)?.let { generateAccept ->
-            checkGenerateAccept(generateAccept, declaration, descriptor, context)
+            checkGenerateAccept(generateAccept, declaration, descriptor,
+                context.trace::report)
         }
         HasAcceptValueConstant.getFrom(descriptor.annotations)?.let { hasVisitor ->
-            checkHasAccept(hasVisitor, declaration, descriptor, context)
+            checkHasAccept(hasVisitor, declaration, descriptor, context.moduleDescriptor,
+                context.trace::report)
         }
     }
 
@@ -43,23 +51,24 @@ class AnnotationsChecker : DeclarationChecker {
         generateAccept: GenerateAcceptValueConstant,
         declaration: KtDeclaration,
         descriptor: DeclarationDescriptor,
-        context: DeclarationCheckerContext,
+        reporter: Reporter,
     ) {
         val annotationPsi = generateAccept.generatedFrom()!!.source.getPsi()
 
         if (HasVisitorValueConstant.getFrom(descriptor.annotations) == null)
-            context.trace.report(GENERATE_ACCEPT_NEEDS_HAS_VISITOR_ANNOTATION.on(annotationPsi ?: declaration))
+            reporter.report(GENERATE_ACCEPT_NEEDS_HAS_VISITOR_ANNOTATION.on(annotationPsi ?: declaration))
     }
 
     private fun checkGenerateVisitor(
         generateVisitor: GenerateVisitorValueConstant,
         declaration: KtDeclaration,
         descriptor: DeclarationDescriptor,
-        context: DeclarationCheckerContext,
+        moduleDescriptor: ModuleDescriptor,
+        reporter: Reporter,
     ) {
         var wasError = false
         fun report(diagnostic: Diagnostic) {
-            context.trace.report(diagnostic)
+            reporter.report(diagnostic)
             wasError = true
         }
         declaration as KtClassOrObject
@@ -83,15 +92,15 @@ class AnnotationsChecker : DeclarationChecker {
                 report(VISITOR_CANNOT_HAVE_ABSTRACTS.on(contributedDescriptor.source.getPsi()!!))
         }
 
-        val rootClass = generateVisitor.visitorOf.resolveClassOrNull(context.moduleDescriptor)
+        val rootClass = generateVisitor.visitorOf.resolveClassOrNull(moduleDescriptor)
             ?: return report(VISITOR_OF_NON_CLASS.on(annotationElement ?: declaration))
-        if (rootClass.typeConstructor == context.moduleDescriptor.builtIns.array.typeConstructor)
+        if (rootClass.typeConstructor == moduleDescriptor.builtIns.array.typeConstructor)
             report(VISITOR_OF_NON_CLASS.on(annotationElement ?: declaration))
         if (wasError) return
 
         val hasVisitor = HasVisitorValueConstant.getFrom(rootClass.annotations)
             ?: return report(TARGET_CLASS_DOESNT_HAVE_VISITOR.on(annotationElement ?: declaration))
-        if (hasVisitor.visitorType.resolveKotlinTypeOrNull(context.moduleDescriptor) != descriptor.defaultType)
+        if (hasVisitor.visitorType.resolveKotlinTypeOrNull(moduleDescriptor) != descriptor.defaultType)
             report(VISITOR_OF_TARGET_IS_NOT_THIS_CLASS.on(annotationElement ?: declaration,
                 rootClass.defaultType,
                 descriptor.defaultType))
@@ -99,11 +108,13 @@ class AnnotationsChecker : DeclarationChecker {
         checkVisitorClassTypeParams(descriptor, hasVisitor, declaration, ::report)
     }
 
-    private fun checkHasVisitor(
+    internal fun checkHasVisitor(
         hasVisitor: HasVisitorValueConstant,
-        declaration: KtDeclaration,
+        declaration: PsiElement,
         descriptor: DeclarationDescriptor,
-        context: DeclarationCheckerContext,
+        moduleDescriptor: ModuleDescriptor,
+        reporter: Reporter,
+        allowGenerateVisitorSkipping: Boolean = true,
     ) {
         val annotationPsi = hasVisitor.generatedFrom()!!.source.getPsi()
 
@@ -111,23 +122,22 @@ class AnnotationsChecker : DeclarationChecker {
         @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
         var wasError = false
         fun report(diagnostic: Diagnostic) {
-            context.trace.report(diagnostic)
+            reporter.report(diagnostic)
             wasError = true
         }
 
         var checkHasAcceptDecl = true
 
-        declaration as KtClassOrObject
         descriptor as ClassDescriptor
 
         // null if the visitor type not needed to check
 
-        val visitorType = hasVisitor.visitorType.resolveClassOrNull(context.moduleDescriptor)
+        val visitorType = hasVisitor.visitorType.resolveClassOrNull(moduleDescriptor)
         when {
             visitorType == null -> {
                 report(VISITOR_TYPE_IS_NOT_ABSTRACT_CLASS.on(annotationPsi ?: declaration))
             }
-            GenerateVisitorValueConstant.getFrom(visitorType.annotations) != null -> {
+            allowGenerateVisitorSkipping && GenerateVisitorValueConstant.getFrom(visitorType.annotations) != null -> {
                 // no check for visitor class because checked by @GenerateVisitor
                 // no check for HasAccept because it will be generated.
                 checkHasAcceptDecl = false
@@ -157,7 +167,7 @@ class AnnotationsChecker : DeclarationChecker {
                 return
             }
             if (hasAccept != null) {
-                if (hasAccept.rootClass.resolveClassifierOrNull(context.moduleDescriptor)?.typeConstructor
+                if (hasAccept.rootClass.resolveClassifierOrNull(moduleDescriptor)?.typeConstructor
                     != descriptor.typeConstructor
                 ) {
                     report(NO_HAS_ACCEPT_AT.on(classDesc.source.getPsi() ?: annotationPsi ?: declaration,
@@ -171,7 +181,7 @@ class AnnotationsChecker : DeclarationChecker {
         checkHasAccept(descriptor, checkHasAcceptDecl)
         // subclasses
         for (subclass in hasVisitor.subclasses) {
-            val subclassDesc = subclass.resolveClassOrNull(context.moduleDescriptor)
+            val subclassDesc = subclass.resolveClassOrNull(moduleDescriptor)
             if (subclassDesc == null) {
                 report(INVALID_SUBCLASS.on(annotationPsi ?: declaration, subclass))
                 continue
@@ -237,22 +247,23 @@ class AnnotationsChecker : DeclarationChecker {
         hasAccept: HasAcceptValueConstant,
         declaration: KtDeclaration,
         descriptor: DeclarationDescriptor,
-        context: DeclarationCheckerContext,
+        moduleDescriptor: ModuleDescriptor,
+        reporter: Reporter,
     ) {
         descriptor as ClassDescriptor
-        val rootClass = hasAccept.rootClass.resolveClassifierOrNull(context.moduleDescriptor)
-            ?: return context.trace.report(INVALID_ROOT_CLASS
+        val rootClass = hasAccept.rootClass.resolveClassifierOrNull(moduleDescriptor)
+            ?: return reporter.report(INVALID_ROOT_CLASS
                 .on(hasAccept.generatedFrom()!!.source.getPsi() ?: declaration, hasAccept.rootClass))
 
         val hasVisitor = HasVisitorValueConstant.getFrom(rootClass.annotations)
-            ?: return context.trace.report(NO_HAS_VISITOR_AT_ROOT_CLASS
+            ?: return reporter.report(NO_HAS_VISITOR_AT_ROOT_CLASS
                 .on(hasAccept.generatedFrom()!!.source.getPsi() ?: declaration, hasAccept.rootClass))
 
         if (!hasVisitor.subclasses.asSequence()
-                .mapNotNull { it.resolveClassOrNull(context.moduleDescriptor) }
+                .mapNotNull { it.resolveClassOrNull(moduleDescriptor) }
                 .any { it.typeConstructor == descriptor.typeConstructor }
         )
-            return context.trace.report(THIS_IS_NOT_SUBCLASS_OF
+            return reporter.report(THIS_IS_NOT_SUBCLASS_OF
                 .on(hasAccept.generatedFrom()!!.source.getPsi() ?: declaration, hasAccept.rootClass))
     }
 
