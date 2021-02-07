@@ -1,6 +1,7 @@
 plugins {
-    kotlin("jvm") version "1.4.21"
-    kotlin("multiplatform") version "1.4.21" apply false
+    kotlin("jvm") version "1.4.30"
+    kotlin("multiplatform") version "1.4.30" apply false
+    kotlin("plugin.allopen") version "1.4.30" apply false
 }
 
 group = "com.anatawa12.autoVisitor"

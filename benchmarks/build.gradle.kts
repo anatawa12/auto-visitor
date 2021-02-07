@@ -2,7 +2,7 @@ plugins {
     java
     kotlin("jvm")
     id("kotlinx.benchmark") version "0.2.0-dev-20"
-    kotlin("plugin.allopen") version "1.4.21"
+    kotlin("plugin.allopen")
 }
 
 group = project(":").group
