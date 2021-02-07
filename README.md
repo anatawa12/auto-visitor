@@ -36,7 +36,7 @@ autoVisitor(some_expr) { variable ->
 
 ## Status of implementation
 
-- [ ] Automatically include this library to classpath in gradle plugin
+- [x] Automatically include this library to classpath in gradle plugin
 - [x] Generating visitor and accept method
   - [x] Generating visitor abstract class
   - [x] Generating accept method
