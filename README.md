@@ -42,19 +42,28 @@ autoVisitor(some_expr) { variable ->
   - [x] Generating accept method
   - [x] Provide Compilation Error
 - [ ] Generating calling accept from when
-    - [x] Generating calling accept from when
-      > However, currently not supported to use outer scope variables *needs help*
-    - [ ] Provide Compilation Error *needs help*
+  - [x] Generating calling accept from when
+    > However, currently not supported to use outer scope variables *needs help*
+  - [x] Provide Compilation Error
     
 ## Structure of this project
 
-- [compiler](./compiler)
+- [compiler-plugin](./compiler-plugin)
 
-  the compiler plugin of this project
+  The compiler plugin of Kotlin.
+
+- [gradle-plugin](./gradle-plugin)
+
+  The gradle plugin. This (will) includes applying Kotlin compiler plugin, applying Annotation Processor, and running
+  Post-completion annotation verifier.
+
+- [annotation-processor](./annotation-processor)
+
+  The pluggable annotation processor to verify annotation usages from java.
+
 - [annotation-value-gen](./annotation-value-gen)
 
-  a pluggable annotation processor for the compiler plugin. 
-  See readme in it for more details
+  A pluggable annotation processor for the compiler plugin. See readme in it for more details
 
 ## Motivation
 
