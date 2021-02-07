@@ -1,4 +1,4 @@
-Auto Visitor Kotlin Compiler Plugin
+ Auto Visitor Kotlin Compiler Plugin
 ====
 
 A kotlin compiler plugin to make easy to write visitor pattern.
@@ -41,9 +41,8 @@ autoVisitor(some_expr) { variable ->
   - [x] Generating visitor abstract class
   - [x] Generating accept method
   - [x] Provide Compilation Error
-- [ ] Generating calling accept from when
+- [x] Generating calling accept from when
   - [x] Generating calling accept from when
-    > However, currently not supported to use outer scope variables *needs help*
   - [x] Provide Compilation Error
     
 ## Structure of this project
