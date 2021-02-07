@@ -1,0 +1,21 @@
+<idea-plugin>
+    <id>com.anatawa12.autoVisitor</id>
+    <name>Auto Visitor</name>
+    <vendor email="anatawa12@icloud.com" url="https://github.com/anatawa12">anatawa12</vendor>
+
+    <description><![CDATA[
+    A compiler plugin to generate visitor pattern.
+    ]]></description>
+
+    <!-- please see https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html
+         on how to target different products -->
+    <depends>com.intellij.modules.platform</depends>
+    <depends>org.jetbrains.kotlin</depends>
+
+
+    <extensions defaultExtensionNs="org.jetbrains.kotlin">
+        <syntheticResolveExtension implementation="com.anatawa12.autoVisitor.idea.VisitorResolveExtensionAdapter"/>
+        <syntheticResolveExtension implementation="com.anatawa12.autoVisitor.idea.AcceptResolveExtensionAdapter"/>
+        <irGenerationExtension implementation="com.anatawa12.autoVisitor.idea.AutoVisitorIrGenerationExtensionAdapter"/>
+    </extensions>
+</idea-plugin>

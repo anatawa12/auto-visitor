@@ -1,0 +1,11 @@
+package com.anatawa12.autoVisitor.idea
+
+import com.anatawa12.autoVisitor.compiler.accept.AcceptResolveExtension
+import com.anatawa12.autoVisitor.compiler.common.AutoVisitorIrGenerationExtension
+import com.anatawa12.autoVisitor.compiler.visitor.VisitorResolveExtension
+import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
+import org.jetbrains.kotlin.resolve.extensions.SyntheticResolveExtension
+
+class VisitorResolveExtensionAdapter : SyntheticResolveExtension by VisitorResolveExtension()
+class AcceptResolveExtensionAdapter : SyntheticResolveExtension by AcceptResolveExtension()
+class AutoVisitorIrGenerationExtensionAdapter : IrGenerationExtension by AutoVisitorIrGenerationExtension()

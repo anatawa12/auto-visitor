@@ -4,6 +4,7 @@ include("annotation-value-gen")
 include("lib")
 include("gradle-plugin")
 include("annotation-processor")
+include("idea-plugin")
 
 val enableBenchmark = System.getenv("ENABLE_AUTO_VISITOR_BENCHMARKS") == "ENABLED"
 //val enableBenchmark = true
