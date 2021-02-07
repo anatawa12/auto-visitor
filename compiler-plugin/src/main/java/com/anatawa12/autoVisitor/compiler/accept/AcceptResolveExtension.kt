@@ -1,9 +1,6 @@
 package com.anatawa12.autoVisitor.compiler.accept
 
-import com.anatawa12.autoVisitor.compiler.HasVisitorValueConstant
-import com.anatawa12.autoVisitor.compiler.invertTwoIfTrue
-import com.anatawa12.autoVisitor.compiler.resolveClassifierOrNull
-import com.anatawa12.autoVisitor.compiler.resolveKotlinTypeOrNull
+import com.anatawa12.autoVisitor.compiler.*
 import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.descriptors.annotations.Annotations
 import org.jetbrains.kotlin.descriptors.impl.SimpleFunctionDescriptorImpl
@@ -36,7 +33,8 @@ class AcceptResolveExtension : SyntheticResolveExtension {
     }
 
     override fun getSyntheticFunctionNames(thisDescriptor: ClassDescriptor): List<Name> {
-        val (hasVisitor, _) = findHasVisitorAndRootType(thisDescriptor) ?: return emptyList()
+        val (hasVisitor, rootType) = findHasVisitorAndRootType(thisDescriptor) ?: return emptyList()
+        if (GenerateAcceptValueConstant.getFrom(rootType.annotations) == null) return emptyList()
 
         hasVisitor.visitorType.resolveKotlinTypeOrNull(thisDescriptor.module).safeAs<SimpleType>()
             ?: return emptyList()
@@ -51,7 +49,8 @@ class AcceptResolveExtension : SyntheticResolveExtension {
         fromSupertypes: List<SimpleFunctionDescriptor>,
         result: MutableCollection<SimpleFunctionDescriptor>,
     ) {
-        val (hasVisitor, _) = findHasVisitorAndRootType(thisDescriptor) ?: return
+        val (hasVisitor, rootType) = findHasVisitorAndRootType(thisDescriptor) ?: return
+        if (GenerateAcceptValueConstant.getFrom(rootType.annotations) == null) return
         if (name.identifier != hasVisitor.acceptName) return
 
         val visitorType = hasVisitor.visitorType.resolveKotlinTypeOrNull(thisDescriptor.module).safeAs<SimpleType>()
