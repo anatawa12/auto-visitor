@@ -259,7 +259,8 @@ class AnnotationsChecker : DeclarationChecker {
             ?: return reporter.report(NO_HAS_VISITOR_AT_ROOT_CLASS
                 .on(hasAccept.generatedFrom()!!.source.getPsi() ?: declaration, hasAccept.rootClass))
 
-        if (!hasVisitor.subclasses.asSequence()
+        if (rootClass.typeConstructor != descriptor.typeConstructor
+            && !hasVisitor.subclasses.asSequence()
                 .mapNotNull { it.resolveClassOrNull(moduleDescriptor) }
                 .any { it.typeConstructor == descriptor.typeConstructor }
         )
