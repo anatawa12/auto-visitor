@@ -1,11 +1,25 @@
+import com.anatawa12.compileTimeConstant.CreateConstantsTask
+
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath("com.anatawa12:compile-time-constant:1.0.0")
+    }
+}
+
 plugins {
     kotlin("jvm")
     kotlin("kapt")
     `java-gradle-plugin`
 }
 
-group = "org.example"
-version = "1.0-SNAPSHOT"
+apply(plugin = "com.anatawa12.compile-time-constant")
+
+group = project(":").group
+version = project(":").version
 
 repositories {
     mavenCentral()
@@ -27,3 +41,14 @@ gradlePlugin {
         }
     }
 }
+
+val createCompileTimeConstant: CreateConstantsTask by tasks
+
+createCompileTimeConstant.apply {
+    constantsClass = "com.anatawa12.autoVisitor.gradle.Constants"
+    values(mapOf(
+        "version" to version.toString()
+    ))
+}
+
+tasks.getByName("compileKotlin").dependsOn(createCompileTimeConstant)

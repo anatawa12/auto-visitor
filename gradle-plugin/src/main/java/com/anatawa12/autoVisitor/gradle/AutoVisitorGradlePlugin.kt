@@ -13,6 +13,7 @@ class AutoVisitorGradlePlugin : KotlinCompilerPluginSupportPlugin {
 
     override fun apply(target: Project) {
         providers = target.providers
+
     }
 
     override fun applyToCompilation(kotlinCompilation: KotlinCompilation<*>): Provider<List<SubpluginOption>> {
@@ -24,7 +25,7 @@ class AutoVisitorGradlePlugin : KotlinCompilerPluginSupportPlugin {
     override fun getPluginArtifact(): SubpluginArtifact = SubpluginArtifact(
         groupId = "com.anatawa12.autoVisitor",
         artifactId = "compiler-plugin",
-        //version =
+        version = Constants.version,
     )
 
     override fun isApplicable(kotlinCompilation: KotlinCompilation<*>): Boolean = true
