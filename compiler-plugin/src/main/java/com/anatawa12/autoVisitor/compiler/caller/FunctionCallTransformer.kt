@@ -168,6 +168,7 @@ class FunctionCallTransformer(
 
             val newClass = irFactory.buildClass {
                 name = Name.special("<no name provided>")
+                visibility = DescriptorVisibilities.LOCAL
             }
             newClass.createParameterDeclarations()
             creatingBlock.statements.add(newClass)

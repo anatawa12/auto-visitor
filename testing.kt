@@ -20,15 +20,18 @@ fun block(block1: Sealed) {
     autoVisitor(block1) { block ->
         when (block) {
             is Sealed.Value1 -> println("Value1: ${block.dome()}")
-//            is Sealed.Value2 -> println("Value2: ${object : Iterable<String> {
-//                override fun iterator(): Iterator<String> = object : Iterator<String> {
-//                    override fun hasNext(): Boolean = true
-//                    override fun next(): String = block1.toString()
-//                }
-//                override fun equals(other: Any?): Boolean {
-//                    return this === other
-//                }
-//            }}")
+            is Sealed.Value2 -> println("Value2: ${
+                object : Iterable<String> {
+                    override fun iterator(): Iterator<String> = object : Iterator<String> {
+                        override fun hasNext(): Boolean = true
+                        override fun next(): String = block1.toString()
+                    }
+
+                    override fun equals(other: Any?): Boolean {
+                        return this === other
+                    }
+                }
+            }")
             is Sealed.Sealed1 -> println("Sealed1")
             is Sealed.Sealed1.Value3 -> println("Value3")
             Sealed.Sealed1.Value4 -> println("Value4")
