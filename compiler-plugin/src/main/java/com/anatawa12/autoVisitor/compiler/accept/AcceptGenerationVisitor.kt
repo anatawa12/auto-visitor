@@ -56,7 +56,7 @@ class AcceptGenerationVisitor(
                     endOffset = UNDEFINED_OFFSET,
                     type = pluginContext.irBuiltIns.nothingNType,
                     returnTargetSymbol = declaration.symbol,
-                    value = IrCallImpl(
+                    value = IrCallImpl.fromSymbolOwner(
                         startOffset = UNDEFINED_OFFSET,
                         endOffset = UNDEFINED_OFFSET,
                         type = declaration.returnType,
