@@ -14,6 +14,11 @@ class AutoVisitorGradlePlugin : KotlinCompilerPluginSupportPlugin {
     override fun apply(target: Project) {
         providers = target.providers
 
+        if (target.plugins.findPlugin("java") != null) {
+            target.repositories.mavenCentral()
+            target.dependencies.add("implementation",
+                "com.anatawa12.autoVisitor:lib:${Constants.version}")
+        }
     }
 
     override fun applyToCompilation(kotlinCompilation: KotlinCompilation<*>): Provider<List<SubpluginOption>> {
