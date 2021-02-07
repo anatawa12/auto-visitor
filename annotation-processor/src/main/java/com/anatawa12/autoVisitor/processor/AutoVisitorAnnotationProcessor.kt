@@ -35,7 +35,9 @@ class AutoVisitorAnnotationProcessor : AbstractProcessor() {
                 element as TypeElement)
         }
         for (element in roundEnv.getElementsAnnotatedWith(HasAccept::class.java)) {
-            // TODO
+            annotationsChecker.checkHasAccept(
+                HasAcceptValue.getFrom(element)!!,
+                element as TypeElement)
         }
         return true
     }

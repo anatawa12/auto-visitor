@@ -108,6 +108,8 @@ class AnnotationsChecker : DeclarationChecker {
         checkVisitorClassTypeParams(descriptor, hasVisitor, declaration, ::report)
     }
 
+    class VisitDesc(val name: String, val classDesc: ClassDescriptor)
+
     internal fun checkHasVisitor(
         hasVisitor: HasVisitorValueConstant,
         declaration: PsiElement,
@@ -126,7 +128,7 @@ class AnnotationsChecker : DeclarationChecker {
             wasError = true
         }
 
-        var checkHasAcceptDecl = true
+        var generateVisitor = false
 
         descriptor as ClassDescriptor
 
@@ -140,31 +142,28 @@ class AnnotationsChecker : DeclarationChecker {
             allowGenerateVisitorSkipping && GenerateVisitorValueConstant.getFrom(visitorType.annotations) != null -> {
                 // no check for visitor class because checked by @GenerateVisitor
                 // no check for HasAccept because it will be generated.
-                checkHasAcceptDecl = false
+                generateVisitor = true
             }
             else -> {
                 if (visitorType.kind != ClassKind.CLASS) {
                     report(VISITOR_TYPE_IS_NOT_ABSTRACT_CLASS.on(annotationPsi ?: declaration))
                 } else if (visitorType.modality != Modality.ABSTRACT) {
                     report(VISITOR_TYPE_IS_NOT_ABSTRACT_CLASS.on(annotationPsi ?: declaration))
-                } else {
-                    checkVisitorClassTypeParams(visitorType, hasVisitor, declaration, ::report)
                 }
             }
         }
 
-
-        kotlin.run {
-            // val generateAccept // TODO: GenerateAccept checking
-        }
-
-        fun checkHasAccept(classDesc: ClassDescriptor, checkHasAcceptDecl: Boolean) {
+        /**
+         * @return the visit function description
+         */
+        fun checkHasAccept(classDesc: ClassDescriptor): VisitDesc? {
             val hasAccept = HasAcceptValueConstant.getFrom(classDesc.annotations)
-            if (hasAccept == null && checkHasAcceptDecl) {
+            // if @GenerateVisitor was checked, @HasAccept was generated automatically
+            if (hasAccept == null && !generateVisitor) {
                 report(NO_HAS_ACCEPT_AT.on(classDesc.source.getPsi() ?: annotationPsi ?: declaration,
                     descriptor.defaultType,
                     classDesc.defaultType))
-                return
+                return null
             }
             if (hasAccept != null) {
                 if (hasAccept.rootClass.resolveClassifierOrNull(moduleDescriptor)?.typeConstructor
@@ -173,12 +172,16 @@ class AnnotationsChecker : DeclarationChecker {
                     report(NO_HAS_ACCEPT_AT.on(classDesc.source.getPsi() ?: annotationPsi ?: declaration,
                         descriptor.defaultType,
                         classDesc.defaultType))
-                    return
+                    return null
                 }
+                return VisitDesc(hasAccept.visitName, classDesc)
+            } else {
+                return null
             }
         }
 
-        checkHasAccept(descriptor, checkHasAcceptDecl)
+        val visits = mutableListOf<VisitDesc>()
+        checkHasAccept(descriptor)?.let(visits::add)
         // subclasses
         for (subclass in hasVisitor.subclasses) {
             val subclassDesc = subclass.resolveClassOrNull(moduleDescriptor)
@@ -190,7 +193,12 @@ class AnnotationsChecker : DeclarationChecker {
                 report(INVALID_SUBCLASS.on(annotationPsi ?: declaration, subclass))
                 continue
             }
-            checkHasAccept(subclassDesc, checkHasAcceptDecl)
+            checkHasAccept(subclassDesc)?.let(visits::add)
+        }
+
+        // visitor class
+        if (visitorType != null && !generateVisitor) {
+            checkVisitorClass(visitorType, hasVisitor, declaration, visits, ::report)
         }
 
         // accept
@@ -241,6 +249,56 @@ class AnnotationsChecker : DeclarationChecker {
             })
         if (acceptFunction == null)
             report(ACCEPT_FUNCTION_NOT_FOUND.on(annotationPsi ?: declaration))
+    }
+
+    private fun checkVisitorClass(
+        visitorType: ClassDescriptor,
+        hasVisitor: HasVisitorValueConstant,
+        declaration: PsiElement,
+        visits: List<VisitDesc>,
+        reporter: Reporter,
+    ) {
+        val (returns, data) = checkVisitorClassTypeParams(visitorType, hasVisitor, declaration, reporter::report)
+            ?: return
+
+        val methodsByName = visits.groupBy { it.name }
+        val visitChecker: (FunctionDescriptor) -> Boolean
+        if (data == null) {
+            visitChecker = fun(func: FunctionDescriptor): Boolean {
+                if (func.valueParameters.size != 1) return false
+                if (func.returnType != returns.defaultType) return false
+                val methods = methodsByName[func.name.identifier] ?: return false
+                val (valueParam) = func.valueParameters
+                for (method in methods) {
+                    if (valueParam.type.constructor == method.classDesc.typeConstructor)
+                        return true
+                }
+                return false
+            }
+        } else {
+            visitChecker = fun(func: FunctionDescriptor): Boolean {
+                if (func.valueParameters.size != 2) return false
+                if (func.returnType != returns.defaultType) return false
+                val methods = methodsByName[func.name.identifier] ?: return false
+                val (valueParam, dataParam) = func.valueParameters
+                if (dataParam.type != data.defaultType) return false
+                for (method in methods) {
+                    if (valueParam.type.constructor == method.classDesc.typeConstructor)
+                        return true
+                }
+                return false
+            }
+        }
+
+        for (contributedDescriptor in visitorType.unsubstitutedMemberScope
+            .getContributedDescriptors(DescriptorKindFilter.CALLABLES)) {
+            contributedDescriptor as CallableMemberDescriptor
+            // except for visit function
+            if (contributedDescriptor is FunctionDescriptor && visitChecker(contributedDescriptor))
+                continue
+            if (contributedDescriptor.modality == Modality.ABSTRACT)
+                reporter.report(VISITOR_CANNOT_HAVE_ABSTRACTS.on(contributedDescriptor.source.getPsi()!!))
+        }
     }
 
     private fun checkHasAccept(

@@ -34,6 +34,12 @@ class AnnotationsChecker(
         fun on(t1: T1, t2: T2, e: Element, a: AnnotationMirror?): Diagnostic
     }
 
+    val VISITOR_CANNOT_HAVE_ABSTRACTS = AnnotationDiagnosticFactory0 { e, a ->
+        Diagnostic {
+            it.printMessage(DiagnosticKind.ERROR, "Visitor class must not have abstract member", e, a)
+        }
+    }
+
     val VISITOR_TYPE_IS_NOT_ABSTRACT_CLASS = AnnotationDiagnosticFactory0 { e, a ->
         Diagnostic {
             it.printMessage(DiagnosticKind.ERROR, "visitor type is not a abstract class", e, a)
@@ -84,6 +90,8 @@ class AnnotationsChecker(
         }
     }
 
+    class VisitDesc(val name: String, val classDesc: TypeElement)
+
     fun checkHasVisitor(
         hasVisitor: HasVisitorValue,
         declaration: TypeElement,
@@ -110,18 +118,17 @@ class AnnotationsChecker(
                     report(VISITOR_TYPE_IS_NOT_ABSTRACT_CLASS.on(declaration, annotationMirror))
                 }
                 else -> {
-                    checkVisitorClassTypeParams(visitorType, hasVisitor, ::report)
                 }
             }
         }
 
-        fun checkHasAccept(classDesc: TypeElement) {
+        fun checkHasAccept(classDesc: TypeElement): VisitDesc? {
             val hasAccept = HasAcceptValue.getFrom(classDesc)
             if (hasAccept == null) {
                 report(NO_HAS_ACCEPT_AT.on(declaration.asType(),
                     classDesc.asType(),
                     classDesc, null))
-                return
+                return null
             }
             if (hasAccept.rootClass != declaration.asType()) {
                 report(NO_HAS_ACCEPT_AT.on(
@@ -129,11 +136,13 @@ class AnnotationsChecker(
                     classDesc.asType(),
                     classDesc,
                     hasAccept.generatedFrom()))
-                return
+                return null
             }
+            return VisitDesc(hasAccept.visitName, classDesc)
         }
 
-        checkHasAccept(declaration)
+        val visits = mutableListOf<VisitDesc>()
+        checkHasAccept(declaration)?.let(visits::add)
         // subclasses
         for (subclass in hasVisitor.subclasses) {
             val subclassDesc = subclass.resolveClassOrNull()
@@ -146,7 +155,12 @@ class AnnotationsChecker(
                 report(INVALID_SUBCLASS.on(subclass, declaration, annotationMirror))
                 continue
             }
-            checkHasAccept(subclassDesc)
+            checkHasAccept(subclassDesc)?.let(visits::add)
+        }
+
+        // visitor class
+        if (visitorType != null) {
+            checkVisitorClass(visitorType, hasVisitor, visits)
         }
 
         // accept
@@ -204,6 +218,57 @@ class AnnotationsChecker(
             })
         if (acceptFunction == null)
             report(ACCEPT_FUNCTION_NOT_FOUND.on(declaration, annotationMirror))
+    }
+
+    private fun checkVisitorClass(
+        visitorType: TypeElement,
+        hasVisitor: HasVisitorValue,
+        visits: List<VisitDesc>,
+    ) {
+        fun report(diagnostic: Diagnostic) {
+            diagnostic.run(messager)
+        }
+
+        val (returns, data) = checkVisitorClassTypeParams(visitorType, hasVisitor, ::report)
+            ?: return
+
+        val methodsByName = visits.groupBy { it.name }
+        val visitChecker: (ExecutableElement) -> Boolean
+        if (data == null) {
+            visitChecker = fun(func: ExecutableElement): Boolean {
+                if (func.parameters.size != 1) return false
+                if (types.isSameType(func.returnType, returns.asType())) return false
+                val methods = methodsByName[func.simpleName.toString()] ?: return false
+                val (valueParam) = func.parameters
+                for (method in methods) {
+                    if (types.isSameType(types.erasure(valueParam.asType()), types.erasure(method.classDesc.asType())))
+                        return true
+                }
+                return false
+            }
+        } else {
+            visitChecker = fun(func: ExecutableElement): Boolean {
+                if (func.parameters.size != 2) return false
+                if (types.isSameType(func.returnType, returns.asType())) return false
+                val methods = methodsByName[func.simpleName.toString()] ?: return false
+                val (valueParam, dataParam) = func.parameters
+                if (types.isSameType(dataParam.asType(), data.asType())) return false
+                for (method in methods) {
+                    if (types.isSameType(types.erasure(valueParam.asType()), types.erasure(method.classDesc.asType())))
+                        return true
+                }
+                return false
+            }
+        }
+
+        for (contributedDescriptor in visitorType.enclosedElements) {
+            //contributedDescriptor as CallableMemberDescriptor
+            // except for visit function
+            if (contributedDescriptor is ExecutableElement && visitChecker(contributedDescriptor))
+                continue
+            if (contributedDescriptor.modifiers.contains(Modifier.ABSTRACT))
+                report(VISITOR_CANNOT_HAVE_ABSTRACTS.on(contributedDescriptor))
+        }
     }
 
     fun checkHasAccept(
