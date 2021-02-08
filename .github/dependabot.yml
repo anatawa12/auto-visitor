@@ -9,31 +9,3 @@ updates:
     directory: "/"
     schedule:
       interval: "daily"
-  - package-ecosystem: "gradle"
-    directory: "/annotation-processor"
-    schedule:
-      interval: "daily"
-  - package-ecosystem: "gradle"
-    directory: "/annotation-value-gen"
-    schedule:
-      interval: "daily"
-  - package-ecosystem: "gradle"
-    directory: "/benchmarks"
-    schedule:
-      interval: "daily"
-  - package-ecosystem: "gradle"
-    directory: "/compiler-plugin"
-    schedule:
-      interval: "daily"
-  - package-ecosystem: "gradle"
-    directory: "/gradle-plugin"
-    schedule:
-      interval: "daily"
-  - package-ecosystem: "gradle"
-    directory: "/idea-plugin"
-    schedule:
-      interval: "daily"
-  - package-ecosystem: "gradle"
-    directory: "/lib"
-    schedule:
-      interval: "daily"
