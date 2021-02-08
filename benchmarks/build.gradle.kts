@@ -15,7 +15,7 @@ repositories {
 
 dependencies {
     implementation(kotlin("stdlib"))
-    implementation("org.jetbrains.kotlinx:kotlinx.benchmark.runtime-jvm:0.2.0-dev-20")
+    implementation("org.jetbrains.kotlinx:kotlinx.benchmark.runtime-jvm:0.2.0-mpp-dev-5")
 }
 
 allOpen {
