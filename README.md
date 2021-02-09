@@ -53,8 +53,7 @@ autoVisitor(some_expr) { variable ->
 
 - [gradle-plugin](./gradle-plugin)
 
-  The gradle plugin. This (will) includes applying Kotlin compiler plugin, applying Annotation Processor, and running
-  Post-completion annotation verifier.
+  The gradle plugin. This includes applying Kotlin compiler plugin, applying Annotation Processor.
 
 - [annotation-processor](./annotation-processor)
 
