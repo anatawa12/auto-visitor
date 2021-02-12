@@ -3,8 +3,8 @@ plugins {
     kotlin("kapt")
 }
 
-group = "com.anatawa12.autoVisitor"
-version = "1.0-SNAPSHOT"
+group = project(":").group
+version = project(":").version
 
 repositories {
     mavenCentral()
