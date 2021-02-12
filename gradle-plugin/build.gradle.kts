@@ -6,7 +6,7 @@ buildscript {
     }
 
     dependencies {
-        classpath("com.anatawa12:compile-time-constant:1.0.0")
+        classpath("com.anatawa12:compile-time-constant:1.0.2")
     }
 }
 
@@ -40,6 +40,13 @@ gradlePlugin {
             implementationClass = "com.anatawa12.autoVisitor.gradle.AutoVisitorGradlePlugin"
         }
     }
+}
+
+fun Project.compileTimeConstant(configure: com.anatawa12.compileTimeConstant.CompileTimeConstantExtension.() -> Unit): Unit =
+    (this as ExtensionAware).extensions.configure("compileTimeConstant", configure)
+
+compileTimeConstant {
+    alwaysGenerateJarFile = true
 }
 
 val createCompileTimeConstant: CreateConstantsTask by tasks
