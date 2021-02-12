@@ -40,3 +40,5 @@ dependencies {
 tasks.withType<Test> {
     useJUnitPlatform()
 }
+
+apply(from = "${rootProject.projectDir}/gradle-scripts/publish-to-central-java.gradle.kts")

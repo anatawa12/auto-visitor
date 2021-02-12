@@ -59,3 +59,16 @@ createCompileTimeConstant.apply {
 }
 
 tasks.getByName("compileKotlin").dependsOn(createCompileTimeConstant)
+
+apply(from = "${rootProject.projectDir}/gradle-scripts/publish-to-central-java.gradle.kts")
+
+tasks.withType<PublishToMavenRepository>().configureEach {
+    onlyIf {
+        if (repository.name == "mavenCentral") {
+            publication.name != "autovisitorPluginMarkerMaven"
+                    && publication.name != "pluginMaven"
+        } else {
+            true
+        }
+    }
+}

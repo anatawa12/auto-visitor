@@ -1,4 +1,5 @@
 plugins {
+    `maven-publish`
     kotlin("multiplatform")
 }
 
@@ -30,6 +31,8 @@ kotlin {
     }
     val hostOs = System.getProperty("os.name")
     val isMingwX64 = hostOs.startsWith("Windows")
+
+    @Suppress("UNUSED_VARIABLE")
     val nativeTarget = when {
         hostOs == "Mac OS X" -> macosX64("native")
         hostOs == "Linux" -> linuxX64("native")
@@ -39,26 +42,41 @@ kotlin {
 
 
     sourceSets {
+        @Suppress("UNUSED_VARIABLE")
         val commonMain by getting
+
+        @Suppress("UNUSED_VARIABLE")
         val commonTest by getting {
             dependencies {
                 implementation(kotlin("test-common"))
                 implementation(kotlin("test-annotations-common"))
             }
         }
+
+        @Suppress("UNUSED_VARIABLE")
         val jvmMain by getting
+
+        @Suppress("UNUSED_VARIABLE")
         val jvmTest by getting {
             dependencies {
                 implementation(kotlin("test-junit"))
             }
         }
+
+        @Suppress("UNUSED_VARIABLE")
         val jsMain by getting
+
+        @Suppress("UNUSED_VARIABLE")
         val jsTest by getting {
             dependencies {
                 implementation(kotlin("test-js"))
             }
         }
+
+        @Suppress("UNUSED_VARIABLE")
         val nativeMain by getting
+
+        @Suppress("UNUSED_VARIABLE")
         val nativeTest by getting
     }
 }
@@ -70,3 +88,18 @@ tasks.withType<org.jetbrains.kotlin.gradle.dsl.KotlinCompile<*>>() {
         )
     }
 }
+
+val createEmptyJavadocJar by tasks.creating(Jar::class) {
+    archiveBaseName.set("lib-jvm")
+    archiveClassifier.set("javadoc")
+}
+
+val jvm by publishing.publications.getting(MavenPublication::class) {
+    artifact(createEmptyJavadocJar)
+}
+
+publishing.publications.filterIsInstance<MavenPublication>().forEach {
+    it.configurePom()
+}
+
+apply(from = "${rootProject.projectDir}/gradle-scripts/publish-to-central.gradle.kts")
