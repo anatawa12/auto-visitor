@@ -11,6 +11,7 @@ buildscript {
 }
 
 plugins {
+    id("com.gradle.plugin-publish") version "0.12.0"
     kotlin("jvm")
     kotlin("kapt")
     `java-gradle-plugin`
@@ -36,10 +37,18 @@ dependencies {
 gradlePlugin {
     plugins {
         register("autovisitor") {
+            displayName = "Auto Visitor"
+            description = "A kotlin compiler plugin to make easy to write visitor pattern."
             id = "com.anatawa12.auto-visitor"
             implementationClass = "com.anatawa12.autoVisitor.gradle.AutoVisitorGradlePlugin"
         }
     }
+}
+
+pluginBundle {
+    website = "https://github.com/anatawa12/auto-visitor"
+    vcsUrl = "https://github.com/anatawa12/auto-visitor"
+    tags = listOf("kotlin", "visitor", "kotlin-compiler", "compiler-plugin")
 }
 
 fun Project.compileTimeConstant(configure: com.anatawa12.compileTimeConstant.CompileTimeConstantExtension.() -> Unit): Unit =
