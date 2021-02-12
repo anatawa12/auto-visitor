@@ -49,5 +49,5 @@ val runPluginVerifier by tasks.getting(RunPluginVerifierTask::class) {
 }
 
 val publishPlugin by tasks.getting(PublishTask::class) {
-    setToken(project.property("com.anatawa12.jetbrains.token"))
+    setToken(project.findProperty("com.anatawa12.jetbrains.token"))
 }
