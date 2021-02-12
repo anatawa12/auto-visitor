@@ -1,10 +1,13 @@
-<idea-plugin>
+<idea-plugin url="https://github.com/anatawa12/auto-visitor/tree/master/idea-plugin">
     <id>com.anatawa12.autoVisitor</id>
     <name>Auto Visitor</name>
     <vendor email="anatawa12@icloud.com" url="https://github.com/anatawa12">anatawa12</vendor>
 
     <description><![CDATA[
     A compiler plugin to generate visitor pattern.
+    This plugin contain support for synthetic elements and compiling.
+
+    This project was hosted on <a href="https://github.com/anatawa12/auto-visitor">github.com/anatawa12/auto-visitor</a>
     ]]></description>
 
     <!-- please see https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html
