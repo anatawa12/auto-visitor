@@ -16,7 +16,7 @@ class AutoVisitorGradlePlugin : KotlinCompilerPluginSupportPlugin {
 
         if (target.plugins.findPlugin("java") != null) {
             target.repositories.mavenCentral()
-            target.dependencies.add("implementation",
+            target.dependencies.add("compileOnly",
                 "com.anatawa12.autoVisitor:lib:${Constants.version}")
             target.dependencies.add("annotationProcessor",
                 "com.anatawa12.autoVisitor:annotation-processor:${Constants.version}")
