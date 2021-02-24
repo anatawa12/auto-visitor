@@ -15,7 +15,13 @@ This plugin is going to provides two code generator shown below:
 
 First, you need to apply this gradle plugin
 
-    TODO: upload to jcenter or plugin portal and put sample code here
+```kotlin
+plugins {
+  // 1.4.30 is required for 1.0.0
+  id("org.jetbrains.kotlin.jvm") version "1.4.30"
+  id("com.anatawa12.auto-visitor") version "1.0.0"
+}
+```
 
 To generate visitor class and accept function, add `@GenerateAccept`, `@HasVisitor`, and `@HasAccept` to the parent
 class, add `@GenerateVisitor` to the visitor abstract class, and add `@HasVisitor` to each child class.
