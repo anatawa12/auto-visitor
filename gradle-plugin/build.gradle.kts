@@ -12,8 +12,8 @@ buildscript {
 
 plugins {
     id("com.gradle.plugin-publish") version "0.12.0"
-    kotlin("jvm")
     kotlin("kapt")
+    `kotlin-dsl`
     `java-gradle-plugin`
 }
 
@@ -27,9 +27,7 @@ repositories {
 }
 
 dependencies {
-    implementation(kotlin("stdlib"))
     implementation(kotlin("gradle-plugin-api"))
-    implementation(gradleApi())
     compileOnly("com.google.auto.service:auto-service-annotations:1.0-rc7")
     kapt("com.google.auto.service:auto-service:1.0-rc7")
 }
@@ -67,7 +65,8 @@ createCompileTimeConstant.apply {
     ))
 }
 
-tasks.getByName("compileKotlin").dependsOn(createCompileTimeConstant)
+tasks.compileKotlin.get().dependsOn(createCompileTimeConstant)
+tasks.compileKotlin.get().kotlinOptions.freeCompilerArgs = listOf("-XXLanguage:+TrailingCommas")
 
 apply(from = "${rootProject.projectDir}/gradle-scripts/publish-to-central-java.gradle.kts")
 
