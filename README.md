@@ -1,6 +1,9 @@
  Auto Visitor Kotlin Compiler Plugin
 ====
 
+[![a12 maintenance: Active](https://anatawa12.com/short.php?q=a12-active-svg)](https://anatawa12.com/short.php?q=a12-active-doc)
+[![Gradle Plugin Portal](https://img.shields.io/maven-metadata/v/https/plugins.gradle.org/m2/com/anatawa12/auto-visitor/com.anatawa12.auto-visitor.gradle.plugin/maven-metadata.xml.svg?colorB=007ec6&label=gradle&logo=gradle)](https://plugins.gradle.org/plugin/com.anatawa12.auto-visitor)
+
 A kotlin compiler plugin to make easy to write visitor pattern.
 
 This plugin is going to provides two code generator shown below:
@@ -12,7 +15,13 @@ This plugin is going to provides two code generator shown below:
 
 First, you need to apply this gradle plugin
 
-    TODO: upload to jcenter or plugin portal and put sample code here
+```kotlin
+plugins {
+  // 1.4.30 is required for 1.0.0
+  id("org.jetbrains.kotlin.jvm") version "1.4.30"
+  id("com.anatawa12.auto-visitor") version "1.0.0"
+}
+```
 
 To generate visitor class and accept function, add `@GenerateAccept`, `@HasVisitor`, and `@HasAccept` to the parent
 class, add `@GenerateVisitor` to the visitor abstract class, and add `@HasVisitor` to each child class.
