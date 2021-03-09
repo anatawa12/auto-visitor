@@ -17,9 +17,9 @@ First, you need to apply this gradle plugin
 
 ```kotlin
 plugins {
-  // 1.4.30 is required for 1.0.0
+  // 1.4.30 is required for 1.0.2
   id("org.jetbrains.kotlin.jvm") version "1.4.30"
-  id("com.anatawa12.auto-visitor") version "1.0.1"
+  id("com.anatawa12.auto-visitor") version "1.0.2"
 }
 ```
 
