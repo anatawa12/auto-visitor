@@ -104,3 +104,5 @@ gradle-app.setting
 # End of https://www.toptal.com/developers/gitignore/api/intellij+iml,gradle
 
 /test-compile-out/
+.idea/vcs.xml
+.idea/artifacts/

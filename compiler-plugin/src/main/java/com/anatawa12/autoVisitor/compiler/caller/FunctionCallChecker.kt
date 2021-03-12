@@ -5,7 +5,7 @@ import com.anatawa12.autoVisitor.compiler.Symbols
 import com.anatawa12.autoVisitor.compiler.caller.AutoVisitorCallErrors.*
 import com.anatawa12.autoVisitor.compiler.common.AnnotationsChecker
 import com.anatawa12.autoVisitor.compiler.resolveClassOrNull
-import com.intellij.psi.PsiElement
+import org.jetbrains.kotlin.com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.ClassKind
 import org.jetbrains.kotlin.descriptors.TypeParameterDescriptor
