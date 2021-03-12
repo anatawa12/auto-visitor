@@ -40,7 +40,7 @@ intellij {
 
 val patchPluginXml by tasks.getting(PatchPluginXmlTask::class) {
     changeNotes("""
-        The first release!
+        use kotlin-compiler-embeddable instead of kotlin-compiler
     """.trimIndent())
 }
 
