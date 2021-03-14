@@ -5,6 +5,7 @@ import com.anatawa12.autoVisitor.compiler.common.AutoVisitorAnnotationErrors.*
 import com.anatawa12.autoVisitor.compiler.visitor.VisitMethodData
 import org.jetbrains.kotlin.com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.descriptors.*
+import org.jetbrains.kotlin.descriptors.annotations.Annotations
 import org.jetbrains.kotlin.diagnostics.Diagnostic
 import org.jetbrains.kotlin.incremental.components.NoLookupLocation
 import org.jetbrains.kotlin.name.Name
@@ -16,6 +17,7 @@ import org.jetbrains.kotlin.resolve.descriptorUtil.isSubclassOf
 import org.jetbrains.kotlin.resolve.scopes.DescriptorKindFilter
 import org.jetbrains.kotlin.resolve.source.getPsi
 import org.jetbrains.kotlin.types.KotlinTypeFactory
+import org.jetbrains.kotlin.types.StarProjectionImpl
 import org.jetbrains.kotlin.types.TypeProjectionImpl
 import org.jetbrains.kotlin.types.Variance
 
@@ -108,7 +110,7 @@ class AnnotationsChecker : DeclarationChecker {
         checkVisitorClassTypeParams(descriptor, hasVisitor, declaration, ::report)
     }
 
-    class VisitDesc(val name: String, val classDesc: ClassDescriptor)
+    class VisitDesc(val name: String, val classDesc: ClassDescriptor, val isRoot: Boolean)
 
     internal fun checkHasVisitor(
         hasVisitor: HasVisitorValueConstant,
@@ -156,7 +158,7 @@ class AnnotationsChecker : DeclarationChecker {
         /**
          * @return the visit function description
          */
-        fun checkHasAccept(classDesc: ClassDescriptor): VisitDesc? {
+        fun checkHasAccept(classDesc: ClassDescriptor, isRoot: Boolean = false): VisitDesc? {
             val hasAccept = HasAcceptValueConstant.getFrom(classDesc.annotations)
             // if @GenerateVisitor was checked, @HasAccept was generated automatically
             if (hasAccept == null && !generateVisitor) {
@@ -174,14 +176,14 @@ class AnnotationsChecker : DeclarationChecker {
                         classDesc.defaultType))
                     return null
                 }
-                return VisitDesc(hasAccept.visitName, classDesc)
+                return VisitDesc(hasAccept.visitName, classDesc, isRoot)
             } else {
                 return null
             }
         }
 
         val visits = mutableListOf<VisitDesc>()
-        checkHasAccept(descriptor)?.let(visits::add)
+        checkHasAccept(descriptor, isRoot = true)?.let(visits::add)
         // subclasses
         for (subclass in hasVisitor.subclasses) {
             val subclassDesc = subclass.resolveClassOrNull(moduleDescriptor)
@@ -261,32 +263,38 @@ class AnnotationsChecker : DeclarationChecker {
         val (returns, data) = checkVisitorClassTypeParams(visitorType, hasVisitor, declaration, reporter::report)
             ?: return
 
-        val methodsByName = visits.groupBy { it.name }
-        val visitChecker: (FunctionDescriptor) -> Boolean
+        val methodsByName = visits.groupByTo(mutableMapOf()) { it.name }
+        val visitChecker: (FunctionDescriptor) -> VisitDesc?
         if (data == null) {
-            visitChecker = fun(func: FunctionDescriptor): Boolean {
-                if (func.valueParameters.size != 1) return false
-                if (func.returnType != returns.defaultType) return false
-                val methods = methodsByName[func.name.identifier] ?: return false
+            visitChecker = fun(func: FunctionDescriptor): VisitDesc? {
+                if (func.valueParameters.size != 1) return null
+                if (func.returnType != returns.defaultType) return null
+                val methods = methodsByName[func.name.identifier] ?: return null
                 val (valueParam) = func.valueParameters
-                for (method in methods) {
-                    if (valueParam.type.constructor == method.classDesc.typeConstructor)
-                        return true
+                val iter = methods.iterator()
+                for (method in iter) {
+                    if (valueParam.type.constructor == method.classDesc.typeConstructor) {
+                        iter.remove()
+                        return method
+                    }
                 }
-                return false
+                return null
             }
         } else {
-            visitChecker = fun(func: FunctionDescriptor): Boolean {
-                if (func.valueParameters.size != 2) return false
-                if (func.returnType != returns.defaultType) return false
-                val methods = methodsByName[func.name.identifier] ?: return false
+            visitChecker = fun(func: FunctionDescriptor): VisitDesc? {
+                if (func.valueParameters.size != 2) return null
+                if (func.returnType != returns.defaultType) return null
+                val methods = methodsByName[func.name.identifier] ?: return null
                 val (valueParam, dataParam) = func.valueParameters
-                if (dataParam.type != data.defaultType) return false
-                for (method in methods) {
-                    if (valueParam.type.constructor == method.classDesc.typeConstructor)
-                        return true
+                if (dataParam.type != data.defaultType) return null
+                val iter = methods.iterator()
+                for (method in iter) {
+                    if (valueParam.type.constructor == method.classDesc.typeConstructor) {
+                        iter.remove()
+                        return method
+                    }
                 }
-                return false
+                return null
             }
         }
 
@@ -294,10 +302,29 @@ class AnnotationsChecker : DeclarationChecker {
             .getContributedDescriptors(DescriptorKindFilter.CALLABLES)) {
             contributedDescriptor as CallableMemberDescriptor
             // except for visit function
-            if (contributedDescriptor is FunctionDescriptor && visitChecker(contributedDescriptor))
-                continue
+            if (contributedDescriptor is FunctionDescriptor) {
+                val visitTarget = visitChecker(contributedDescriptor)
+                if (visitTarget != null) {
+                    if (visitTarget.isRoot) {
+                        if (contributedDescriptor.modality !in setOf(Modality.ABSTRACT, Modality.OPEN))
+                            reporter.report(VISIT_MUST_BE_OPEN_OR_ABSTRACT.on(contributedDescriptor.source.getPsi()!!))
+                    } else {
+                        if (contributedDescriptor.modality != Modality.OPEN)
+                            reporter.report(VISIT_MUST_BE_OPEN.on(contributedDescriptor.source.getPsi()!!))
+                    }
+                    continue
+                }
+            }
+            //VISIT_MUST_BE_OPEN
             if (contributedDescriptor.modality == Modality.ABSTRACT)
                 reporter.report(VISITOR_CANNOT_HAVE_ABSTRACTS.on(contributedDescriptor.source.getPsi()!!))
+        }
+
+        // find missing for children classes
+        for (visitDesc in methodsByName.asSequence().flatMap { it.value }) {
+            val type = KotlinTypeFactory.simpleNotNullType(Annotations.EMPTY, visitDesc.classDesc,
+                visitDesc.classDesc.declaredTypeParameters.map { StarProjectionImpl(it) })
+            reporter.report(MISSING_VISIT_METHOD.on(visitorType.source.getPsi()!!, type))
         }
     }
 
