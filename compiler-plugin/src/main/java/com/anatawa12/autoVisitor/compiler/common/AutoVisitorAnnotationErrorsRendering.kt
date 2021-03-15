@@ -39,6 +39,19 @@ object AutoVisitorAnnotationErrorsRendering : DefaultErrorMessages.Extension {
             "Visitor class must not have abstract member",
         )
         MAP.put(
+            MISSING_VISIT_METHOD,
+            "missing visit method of {0}",
+            Renderers.RENDER_TYPE,
+        )
+        MAP.put(
+            VISIT_MUST_BE_OPEN,
+            "visit function for child classes must be open {0}",
+        )
+        MAP.put(
+            VISIT_MUST_BE_OPEN_OR_ABSTRACT,
+            "visit function for root class must be open or abstract {0}",
+        )
+        MAP.put(
             VISITOR_OF_NON_CLASS,
             "Visitor class of non class declaration is not supported",
         )

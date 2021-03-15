@@ -24,6 +24,12 @@ public class AutoVisitorAnnotationErrors {
     @NotNull
     public static final DiagnosticFactory0<PsiElement> VISITOR_CANNOT_HAVE_ABSTRACTS = DiagnosticFactory0.create(Severity.ERROR);
     @NotNull
+    public static final DiagnosticFactory1<PsiElement, KotlinType> MISSING_VISIT_METHOD = DiagnosticFactory1.create(Severity.ERROR);
+    @NotNull
+    public static final DiagnosticFactory0<PsiElement> VISIT_MUST_BE_OPEN = DiagnosticFactory0.create(Severity.ERROR);
+    @NotNull
+    public static final DiagnosticFactory0<PsiElement> VISIT_MUST_BE_OPEN_OR_ABSTRACT = DiagnosticFactory0.create(Severity.ERROR);
+    @NotNull
     public static final DiagnosticFactory0<PsiElement> VISITOR_OF_NON_CLASS = DiagnosticFactory0.create(Severity.ERROR);
     @NotNull
     public static final DiagnosticFactory0<PsiElement> TARGET_CLASS_DOESNT_HAVE_VISITOR = DiagnosticFactory0.create(Severity.ERROR);
