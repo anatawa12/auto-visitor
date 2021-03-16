@@ -1,5 +1,6 @@
 rootProject.name = "auto-visitor"
 include("compiler-plugin")
+include("compiler-plugin-embeddable")
 include("annotation-value-gen")
 include("lib")
 include("gradle-plugin")
