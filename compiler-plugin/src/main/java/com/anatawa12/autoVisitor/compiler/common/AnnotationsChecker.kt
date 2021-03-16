@@ -3,7 +3,7 @@ package com.anatawa12.autoVisitor.compiler.common
 import com.anatawa12.autoVisitor.compiler.*
 import com.anatawa12.autoVisitor.compiler.common.AutoVisitorAnnotationErrors.*
 import com.anatawa12.autoVisitor.compiler.visitor.VisitMethodData
-import org.jetbrains.kotlin.com.intellij.psi.PsiElement
+import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.descriptors.annotations.Annotations
 import org.jetbrains.kotlin.diagnostics.Diagnostic

@@ -3,10 +3,10 @@ package com.anatawa12.autoVisitor.compiler.common
 import com.anatawa12.autoVisitor.compiler.accept.AcceptResolveExtension
 import com.anatawa12.autoVisitor.compiler.visitor.VisitorResolveExtension
 import com.google.auto.service.AutoService
+import com.intellij.mock.MockProject
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
 import org.jetbrains.kotlin.cli.jvm.compiler.report
-import org.jetbrains.kotlin.com.intellij.mock.MockProject
 import org.jetbrains.kotlin.compiler.plugin.ComponentRegistrar
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.config.JVMConfigurationKeys

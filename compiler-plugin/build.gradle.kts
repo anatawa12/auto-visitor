@@ -26,7 +26,7 @@ repositories {
 
 dependencies {
     implementation(kotlin("stdlib"))
-    implementation(kotlin("compiler-embeddable"))
+    implementation(kotlin("compiler"))
     implementation(project(":lib"))
 
     testImplementation("org.junit.jupiter:junit-jupiter:5.7.1")

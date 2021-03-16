@@ -26,7 +26,7 @@ class AutoVisitorGradlePlugin : KotlinCompilerPluginSupportPlugin {
 
     override fun getPluginArtifact(): SubpluginArtifact = SubpluginArtifact(
         groupId = "com.anatawa12.autoVisitor",
-        artifactId = "compiler-plugin",
+        artifactId = "compiler-plugin-embeddable",
         version = Constants.version,
     )
 
