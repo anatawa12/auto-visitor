@@ -1,16 +1,18 @@
 package com.anatawa12.autoVisitor.compiler.visitor
 
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
+import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.ObsoleteDescriptorBasedAPI
-import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
+import org.jetbrains.kotlin.ir.builders.irBlockBody
+import org.jetbrains.kotlin.ir.builders.irCall
+import org.jetbrains.kotlin.ir.builders.irGet
+import org.jetbrains.kotlin.ir.builders.irReturn
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationParent
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
-import org.jetbrains.kotlin.ir.expressions.impl.IrCallImpl
-import org.jetbrains.kotlin.ir.expressions.impl.IrGetValueImpl
 import org.jetbrains.kotlin.ir.types.IrSimpleType
 import org.jetbrains.kotlin.ir.util.functions
 import org.jetbrains.kotlin.ir.visitors.IrElementTransformerVoid
@@ -29,30 +31,15 @@ class VisitorGenerationTransformer(
 
         val superVisit = resolveFunction(declaration.parent, declaration, name, superClass)
 
-        declaration.body = pluginContext.irFactory.createBlockBody(UNDEFINED_OFFSET, UNDEFINED_OFFSET).also {
-            it.statements.add(
-                IrCallImpl(
-                    startOffset = UNDEFINED_OFFSET,
-                    endOffset = UNDEFINED_OFFSET,
-                    type = declaration.returnType,
-                    symbol = superVisit.symbol,
-                    typeArgumentsCount = superVisit.typeParameters.size,
-                    valueArgumentsCount = superVisit.valueParameters.size,
-                ).apply {
-                    dispatchReceiver = IrGetValueImpl(
-                        startOffset = UNDEFINED_OFFSET,
-                        endOffset = UNDEFINED_OFFSET,
-                        symbol = declaration.dispatchReceiverParameter!!.symbol
-                    )
+        declaration.body = DeclarationIrBuilder(pluginContext, declaration.symbol).run {
+            irBlockBody {
+                +irReturn(irCall(superVisit.symbol).apply {
+                    dispatchReceiver = irGet(declaration.dispatchReceiverParameter!!)
                     for ((i, param) in declaration.valueParameters.withIndex()) {
-                        putValueArgument(i, IrGetValueImpl(
-                            startOffset = UNDEFINED_OFFSET,
-                            endOffset = UNDEFINED_OFFSET,
-                            symbol = param.symbol
-                        ))
+                        putValueArgument(i, irGet(param))
                     }
-                }
-            )
+                })
+            }
         }
         return super.visitSimpleFunction(declaration)
     }
