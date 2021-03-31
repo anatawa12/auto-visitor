@@ -9,6 +9,12 @@ class GenerateAcceptAndGenerateVisitor {
         }
     }
 
+    @Test
+    fun `no-accept-child-class`() {
+        TestFactory.runTest(fileName("no-accept-child-class")) {
+        }
+    }
+
     private fun fileName(name: String): String {
         return "GenerateAcceptAndGenerateVisitor.$name.kt"
     }
