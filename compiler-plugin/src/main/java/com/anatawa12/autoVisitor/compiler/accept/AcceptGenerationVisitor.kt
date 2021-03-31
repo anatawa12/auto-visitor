@@ -38,7 +38,7 @@ class AcceptGenerationVisitor(
         declaration.descriptor.getUserData(AcceptMethodData) ?: return
 
         val acceptingClass = declaration.parent as IrClass
-        val hasAccept = HasAcceptValue.getFrom(acceptingClass.annotations)!!
+        val hasAccept = HasAcceptValue.getFrom(acceptingClass.annotations) ?: return
         val hasVisitor = HasVisitorValue.getFrom(hasAccept.rootClass.classOrNull!!.owner.annotations)!!
         val visitorType = hasVisitor.visitorType.classifierOrFail.cast<IrClassSymbol>()
         val visitorClass = visitorType.owner
