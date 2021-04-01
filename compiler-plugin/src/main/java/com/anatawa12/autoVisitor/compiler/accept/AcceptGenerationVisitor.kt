@@ -4,15 +4,16 @@ import com.anatawa12.autoVisitor.compiler.CommonUtil
 import com.anatawa12.autoVisitor.compiler.HasAcceptValue
 import com.anatawa12.autoVisitor.compiler.HasVisitorValue
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
+import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.ObsoleteDescriptorBasedAPI
-import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
+import org.jetbrains.kotlin.ir.builders.irBlockBody
+import org.jetbrains.kotlin.ir.builders.irCall
+import org.jetbrains.kotlin.ir.builders.irGet
+import org.jetbrains.kotlin.ir.builders.irReturn
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
-import org.jetbrains.kotlin.ir.expressions.impl.IrCallImpl
-import org.jetbrains.kotlin.ir.expressions.impl.IrGetValueImpl
-import org.jetbrains.kotlin.ir.expressions.impl.IrReturnImpl
 import org.jetbrains.kotlin.ir.symbols.IrClassSymbol
 import org.jetbrains.kotlin.ir.types.classOrNull
 import org.jetbrains.kotlin.ir.types.classifierOrFail
@@ -47,41 +48,14 @@ class AcceptGenerationVisitor(
         val visitChecker = CommonUtil.getVisitorFunctionChecker(visitorClass.typeParameters, hasVisitor)
 
         val visitMethod = visitorClass.functions.find { visitChecker(it, acceptingClass.defaultType) }!!
-        declaration.body = pluginContext.irFactory.createBlockBody(
-            startOffset = UNDEFINED_OFFSET,
-            endOffset = UNDEFINED_OFFSET,
-            statements = listOf(
-                IrReturnImpl(
-                    startOffset = UNDEFINED_OFFSET,
-                    endOffset = UNDEFINED_OFFSET,
-                    type = pluginContext.irBuiltIns.nothingNType,
-                    returnTargetSymbol = declaration.symbol,
-                    value = IrCallImpl.fromSymbolOwner(
-                        startOffset = UNDEFINED_OFFSET,
-                        endOffset = UNDEFINED_OFFSET,
-                        type = declaration.returnType,
-                        symbol = visitMethod.symbol,
-                    ).apply {
-                        dispatchReceiver = IrGetValueImpl(
-                            startOffset = UNDEFINED_OFFSET,
-                            endOffset = UNDEFINED_OFFSET,
-                            symbol = declaration.valueParameters[0].symbol,
-                        )
-                        putValueArgument(0, IrGetValueImpl(
-                            startOffset = UNDEFINED_OFFSET,
-                            endOffset = UNDEFINED_OFFSET,
-                            symbol = declaration.dispatchReceiverParameter!!.symbol,
-                        ))
-                        if (hasVisitor.hasCustomDataParam) {
-                            putValueArgument(1, IrGetValueImpl(
-                                startOffset = UNDEFINED_OFFSET,
-                                endOffset = UNDEFINED_OFFSET,
-                                symbol = declaration.valueParameters[1].symbol,
-                            ))
-                        }
-                    }
-                )
-            ),
-        )
+        declaration.body = DeclarationIrBuilder(pluginContext, declaration.symbol).irBlockBody {
+            +irReturn(irCall(visitMethod.symbol, declaration.returnType).apply {
+                dispatchReceiver = irGet(declaration.valueParameters[0])
+                putValueArgument(0, irGet(declaration.dispatchReceiverParameter!!))
+                if (hasVisitor.hasCustomDataParam) {
+                    putValueArgument(1, irGet(declaration.valueParameters[1]))
+                }
+            })
+        }
     }
 }

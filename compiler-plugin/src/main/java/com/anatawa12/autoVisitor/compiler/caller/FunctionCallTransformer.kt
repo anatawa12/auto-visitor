@@ -3,17 +3,23 @@ package com.anatawa12.autoVisitor.compiler.caller
 import com.anatawa12.autoVisitor.compiler.*
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.backend.common.ir.createParameterDeclarations
+import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
+import org.jetbrains.kotlin.backend.common.lower.irBlock
 import org.jetbrains.kotlin.descriptors.ClassKind
 import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
 import org.jetbrains.kotlin.ir.builders.declarations.*
+import org.jetbrains.kotlin.ir.builders.irBlockBody
+import org.jetbrains.kotlin.ir.builders.irCallConstructor
+import org.jetbrains.kotlin.ir.builders.irDelegatingConstructorCall
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.expressions.*
 import org.jetbrains.kotlin.ir.expressions.impl.*
 import org.jetbrains.kotlin.ir.symbols.IrClassSymbol
 import org.jetbrains.kotlin.ir.symbols.IrValueSymbol
+import org.jetbrains.kotlin.ir.symbols.IrVariableSymbol
 import org.jetbrains.kotlin.ir.types.*
 import org.jetbrains.kotlin.ir.types.impl.IrSimpleTypeBuilder
 import org.jetbrains.kotlin.ir.types.impl.buildSimpleType
@@ -106,7 +112,7 @@ class FunctionCallTransformer(
             }
         }.buildSimpleType()
 
-        val visitorCtor get() = data.visitorConstructor.symbol
+        val visitorCtor get() = data.visitorConstructor
         val methodsByType get() = data.methodsByType
         val rootType get() = data.rootType
 
@@ -140,129 +146,127 @@ class FunctionCallTransformer(
     }
 
     override fun visitCall(expression: IrCall): IrExpression {
-        //*
-        if (expression.symbol == autoVisitor) {
-            check(expression.valueArgumentsCount == 2)
-            val valueArgument = expression.getValueArgument(0) ?: error("valueArgument not found")
-            val lambda = expression.getValueArgument(1)
-            check(lambda is IrFunctionExpression) { "autoVisitor must be called with a lambda expr" }
-            val func = lambda.function.body ?: error("no body on the lambda")
-            val funcParam = lambda.function.valueParameters.single()
-            val stat = func.statements.singleOrNull() ?: error("there are two or more statements inside the lambda")
-            val block = if (stat is IrReturnImpl) stat.value as? IrBlock ?: unsupportedWhenExpr()
-            else stat as? IrBlock ?: unsupportedWhenExpr()
-            if (block.origin != IrStatementOrigin.WHEN) unsupportedWhenExpr()
-            if (block.statements.size != 2) unsupportedWhenExpr()
-            val decl = block.statements[0] as? IrVariable ?: unsupportedWhenExpr()
-            val variable = decl.symbol
-            if (variable.owner.origin != IrDeclarationOrigin.IR_TEMPORARY_VARIABLE) unsupportedWhenExpr()
-            val whenBlock = block.statements[1] as? IrWhen ?: unsupportedWhenExpr()
+        if (expression.symbol != autoVisitor) return super.visitCall(expression)
 
-            valueArgument.type
-            val ctx = CallGeneratorCtx(
-                VisitableData.computeData(valueArgument.type) ?: error("invalid visitor"),
-                expression,
+        check(expression.valueArgumentsCount == 2)
+        val valueArgument = expression.getValueArgument(0) ?: error("valueArgument not found")
+        val lambda = expression.getValueArgument(1)
+        check(lambda is IrFunctionExpression) { "autoVisitor must be called with a lambda expr" }
+        val func = lambda.function.body ?: error("no body on the lambda")
+        val funcParam = lambda.function.valueParameters.single()
+        val stat = func.statements.singleOrNull() ?: error("there are two or more statements inside the lambda")
+        val block = if (stat is IrReturnImpl) stat.value as? IrBlock ?: unsupportedWhenExpr()
+        else stat as? IrBlock ?: unsupportedWhenExpr()
+        if (block.origin != IrStatementOrigin.WHEN) unsupportedWhenExpr()
+        if (block.statements.size != 2) unsupportedWhenExpr()
+        val decl = block.statements[0] as? IrVariable ?: unsupportedWhenExpr()
+        val variable = decl.symbol
+        if (variable.owner.origin != IrDeclarationOrigin.IR_TEMPORARY_VARIABLE) unsupportedWhenExpr()
+        val whenBlock = block.statements[1] as? IrWhen ?: unsupportedWhenExpr()
+
+        valueArgument.type
+        val ctx = CallGeneratorCtx(
+            VisitableData.computeData(valueArgument.type) ?: error("invalid visitor"),
+            expression,
+        )
+
+        val (localClass, ctor) = createClass(ctx, lambda, whenBlock, variable, funcParam)
+
+        val parentSymbol = lambda.function.parent.cast<IrSymbolDeclaration<*>>().symbol
+        val creatingBlock =
+            DeclarationIrBuilder(pluginContext, parentSymbol).irBlock(expression, IrStatementOrigin.OBJECT_LITERAL) {
+                +localClass
+                +irCallConstructor(ctor.symbol, emptyList())
+            }
+
+        return ctx.createCall(valueArgument, creatingBlock)
+    }
+
+    private fun createClass(
+        ctx: CallGeneratorCtx,
+        lambda: IrFunctionExpression,
+        whenBlock: IrWhen,
+        variable: IrVariableSymbol,
+        funcParam: IrValueParameter,
+    ): Pair<IrClass, IrConstructor> {
+
+        val newClass = irFactory.buildClass {
+            name = Name.special("<no name provided>")
+            visibility = DescriptorVisibilities.LOCAL
+        }
+        newClass.createParameterDeclarations()
+
+        newClass.superTypes += ctx.visitorType
+        newClass.parent = lambda.function.parent
+        // create constructor
+        val newClassCtor = newClass.addConstructor {
+            visibility = DescriptorVisibilities.LOCAL
+        }.apply {
+            body = DeclarationIrBuilder(pluginContext, symbol).irBlockBody {
+                +irDelegatingConstructorCall(ctx.visitorCtor)
+                +IrInstanceInitializerCallImpl(
+                    startOffset = UNDEFINED_OFFSET, endOffset = UNDEFINED_OFFSET,
+                    classSymbol = newClass.symbol,
+                    type = builtIns.unitType,
+                )
+            }
+        }
+
+        val methods = ctx.methodsByType.toMutableMap()
+
+        for (branch in whenBlock.branches) {
+            val type = getTargetTypeByWhenCondition(branch.condition, ctx, variable)
+
+            val method = methods[type] ?: branchForTheTypeNotFound(type)
+            methods.remove(type)
+            val function = newClass.addFunction {
+                originalDeclaration = method
+                name = method.name
+                returnType = ctx.returningType
+            }
+            function.overriddenSymbols += method.symbol
+            function.dispatchReceiverParameter = buildReceiverParameter(
+                parent = function,
+                origin = IrDeclarationOrigin.INSTANCE_RECEIVER,
+                type = newClass.typeWith(),
             )
 
-            val creatingBlock =
-                IrBlockImpl(UNDEFINED_OFFSET, UNDEFINED_OFFSET, ctx.visitorType, IrStatementOrigin.OBJECT_LITERAL)
-
-            val newClass = irFactory.buildClass {
-                name = Name.special("<no name provided>")
-                visibility = DescriptorVisibilities.LOCAL
-            }
-            newClass.createParameterDeclarations()
-            creatingBlock.statements.add(newClass)
-
-            newClass.superTypes += ctx.visitorType
-            newClass.parent = lambda.function.parent
-            // create constructor
-            val newClassCtor = newClass.addConstructor {
-                visibility = DescriptorVisibilities.LOCAL
-            }.apply {
-                body = irFactory.createBlockBody(UNDEFINED_OFFSET, UNDEFINED_OFFSET).apply {
-                    statements.add(IrDelegatingConstructorCallImpl(
-                        startOffset = UNDEFINED_OFFSET, endOffset = UNDEFINED_OFFSET,
-                        type = builtIns.unitType,
-                        symbol = ctx.visitorCtor,
-                        typeArgumentsCount = 0,
-                        valueArgumentsCount = 0,
-                    ))
-                    statements.add(IrInstanceInitializerCallImpl(
-                        startOffset = UNDEFINED_OFFSET, endOffset = UNDEFINED_OFFSET,
-                        classSymbol = newClass.symbol,
-                        type = builtIns.unitType,
-                    ))
-                }
+            val param = function.addValueParameter {
+                this.type = method.valueParameters[0].type
+                this.name = funcParam.name
             }
 
-            creatingBlock.statements.add(IrConstructorCallImpl(
-                startOffset = UNDEFINED_OFFSET, endOffset = UNDEFINED_OFFSET,
-                type = IrSimpleTypeBuilder().apply { classifier = newClass.symbol }.buildSimpleType(),
-                symbol = newClassCtor.symbol,
-                typeArgumentsCount = 0,
-                constructorTypeArgumentsCount = 0,
-                valueArgumentsCount = 0,
-            ))
-
-            val methods = ctx.methodsByType.toMutableMap()
-
-            for (branch in whenBlock.branches) {
-                val type = when (val condition = branch.condition) {
-                    is IrTypeOperatorCall -> {
-                        if (!condition.argument.isVariableOf(variable)) unsupportedWhenBranch()
-                        if (condition.operator != IrTypeOperator.INSTANCEOF) unsupportedWhenBranch()
-                        condition.typeOperand
-                    }
-                    is IrCall -> {
-                        if (condition.symbol != moduleFragment.irBuiltins.eqeqSymbol) unsupportedWhenBranch()
-                        if (condition.valueArgumentsCount != 2) unsupportedWhenBranch()
-                        if (!condition.getValueArgument(0).isVariableOf(variable)) unsupportedWhenBranch()
-                        val classObject = condition.getValueArgument(1) as? IrGetObjectValue ?: unsupportedWhenBranch()
-                        classObject.type
-                    }
-                    is IrConst<*> -> {
-                        if (condition.value != true) unsupportedWhenBranch()
-                        ctx.rootType
-                    }
-                    else -> unsupportedWhenBranch()
-                }
-
-                val method = methods[type] ?: branchForTheTypeNotFound(type)
-                methods.remove(type)
-                val function = newClass.addFunction {
-                    originalDeclaration = method
-                    name = method.name
-                    returnType = ctx.returningType
-                }
-                function.overriddenSymbols += method.symbol
-                function.dispatchReceiverParameter = buildReceiverParameter(
-                    parent = function,
-                    origin = IrDeclarationOrigin.INSTANCE_RECEIVER,
-                    type = newClass.typeWith(),
-                )
-
-                val param = function.addValueParameter {
-                    this.type = method.valueParameters[0].type
-                    this.name = funcParam.name
-                }
-
-                function.body = visitBlockByWhenBranch(
-                    irFactory.createExpressionBody(branch.result),
-                    lambda.function to function,
-                    funcParam.symbol to param.symbol,
-                    //variable to variable,
-                )
-            }
-
-            return ctx.createCall(valueArgument, creatingBlock)
-            // TODO: replace this one
+            function.body = visitBlockByWhenBranch(
+                irFactory.createExpressionBody(branch.result),
+                lambda.function to function,
+                funcParam.symbol to param.symbol,
+                //variable to variable,
+            )
         }
-        // */
 
-
-        return super.visitCall(expression)
+        return newClass to newClassCtor
     }
+
+    private fun getTargetTypeByWhenCondition(condition: IrExpression, ctx: CallGeneratorCtx, variable: IrValueSymbol) =
+        when (condition) {
+            is IrTypeOperatorCall -> {
+                if (!condition.argument.isVariableOf(variable)) unsupportedWhenBranch()
+                if (condition.operator != IrTypeOperator.INSTANCEOF) unsupportedWhenBranch()
+                condition.typeOperand
+            }
+            is IrCall -> {
+                if (condition.symbol != moduleFragment.irBuiltins.eqeqSymbol) unsupportedWhenBranch()
+                if (condition.valueArgumentsCount != 2) unsupportedWhenBranch()
+                if (!condition.getValueArgument(0).isVariableOf(variable)) unsupportedWhenBranch()
+                val classObject = condition.getValueArgument(1) as? IrGetObjectValue ?: unsupportedWhenBranch()
+                classObject.type
+            }
+            is IrConst<*> -> {
+                if (condition.value != true) unsupportedWhenBranch()
+                ctx.rootType
+            }
+            else -> unsupportedWhenBranch()
+        }
 
     private fun visitBlockByWhenBranch(
         createExpressionBody: IrExpressionBody,
