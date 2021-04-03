@@ -50,7 +50,21 @@ intellij {
 
 val patchPluginXml by tasks.getting(PatchPluginXmlTask::class) {
     changeNotes("""
-        use kotlin-compiler-embeddable instead of kotlin-compiler
+        <p>
+          Current version of this plugin targets Kotlin 1.4.32.
+        </p>
+        <ul>
+            <li>IllegalStateException for some valid when <a href="https://github.com/anatawa12/auto-visitor/pull/24">#24</a></li>
+            <li>Report better error for invalid visitors <a href="https://github.com/anatawa12/auto-visitor/pull/25">#25</a></li>
+            <li>Build both embeddable and not <a href="https://github.com/anatawa12/auto-visitor/pull/26">#26</a></li>
+            <li>Support for no accept child class <a href="https://github.com/anatawa12/auto-visitor/pull/30">#30</a></li>
+            <li>Fix: Auto-generated visitor class returns unit <a href="https://github.com/anatawa12/auto-visitor/pull/31">#31</a></li>
+            <li>Rewrite transformers <a href="https://github.com/anatawa12/auto-visitor/pull/33">#33</a></li>
+            <li>Upgrade org.jetbrains.intellij to 0.7.2 <a href="https://github.com/anatawa12/auto-visitor/pull/11">#11</a></li>
+            <li>Upgrade com.gradle.plugin-publish to 0.14.0 <a href="https://github.com/anatawa12/auto-visitor/pull/32">#32</a></li>
+            <li>Upgrade Kotlin to 1.4.32 <a href="https://github.com/anatawa12/auto-visitor/pull/28">#28</a> <a href="https://github.com/anatawa12/auto-visitor/pull/27">#27</a> <a href="https://github.com/anatawa12/auto-visitor/pull/29">#29</a></li>
+            <li>Add Intellij Target Version: 2021.1 <a href="https://github.com/anatawa12/auto-visitor/pull/34">#34</a></li>
+        </ul>
     """.trimIndent())
     setSinceBuild("203.7148")
     setUntilBuild("211.*")
