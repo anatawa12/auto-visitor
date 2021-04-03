@@ -33,7 +33,7 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>() {
 }
 
 val release1 = "203.7148.57"
-val release2 = "211.6693.65"
+val release2 = "211.6693.65-EAP-SNAPSHOT"
 
 intellij {
     version = release1
@@ -57,7 +57,7 @@ val patchPluginXml by tasks.getting(PatchPluginXmlTask::class) {
 }
 
 val runPluginVerifier by tasks.getting(RunPluginVerifierTask::class) {
-    setIdeVersions("$release1,$release2")
+    setIdeVersions("$release1,${release2.substringBefore('-')}")
 }
 
 val publishPlugin by tasks.getting(PublishTask::class) {
