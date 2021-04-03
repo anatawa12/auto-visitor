@@ -31,15 +31,13 @@ class VisitorGenerationTransformer(
 
         val superVisit = resolveFunction(declaration.parent, declaration, name, superClass)
 
-        declaration.body = DeclarationIrBuilder(pluginContext, declaration.symbol).run {
-            irBlockBody {
-                +irReturn(irCall(superVisit.symbol).apply {
-                    dispatchReceiver = irGet(declaration.dispatchReceiverParameter!!)
-                    for ((i, param) in declaration.valueParameters.withIndex()) {
-                        putValueArgument(i, irGet(param))
-                    }
-                })
-            }
+        declaration.body = DeclarationIrBuilder(pluginContext, declaration.symbol).irBlockBody {
+            +irReturn(irCall(superVisit.symbol).apply {
+                dispatchReceiver = irGet(declaration.dispatchReceiverParameter!!)
+                for ((i, param) in declaration.valueParameters.withIndex()) {
+                    putValueArgument(i, irGet(param))
+                }
+            })
         }
         return super.visitSimpleFunction(declaration)
     }
