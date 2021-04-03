@@ -11,7 +11,7 @@ buildscript {
 }
 
 plugins {
-    id("com.gradle.plugin-publish") version "0.12.0"
+    id("com.gradle.plugin-publish") version "0.14.0"
     kotlin("kapt")
     `kotlin-dsl`
     `java-gradle-plugin`
