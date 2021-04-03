@@ -33,14 +33,14 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>() {
 }
 
 val release1 = "203.7148.57"
-val release2 = "211.6693.65-EAP-SNAPSHOT"
+val release2 = "211.6693.65"
 
 intellij {
     version = release1
     pluginName = "auto-visitor"
     setPlugins("org.jetbrains.kotlin:203-1.4.30-release-IJ7148.5")
 }
-/*
+//*
 intellij {
     version = release2
     pluginName = "auto-visitor"
