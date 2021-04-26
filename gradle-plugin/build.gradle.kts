@@ -6,7 +6,7 @@ buildscript {
     }
 
     dependencies {
-        classpath("com.anatawa12:compile-time-constant:1.0.2")
+        classpath("com.anatawa12:compile-time-constant:1.0.3")
     }
 }
 
