@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "com.anatawa12.autoVisitor"
-version = "1.0.5-SNAPSHOT"
+version = property("version")!!
 
 repositories {
     mavenCentral()
