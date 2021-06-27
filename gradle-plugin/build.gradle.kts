@@ -41,6 +41,7 @@ gradlePlugin {
             implementationClass = "com.anatawa12.autoVisitor.gradle.AutoVisitorGradlePlugin"
         }
     }
+    isAutomatedPublishing = false
 }
 
 pluginBundle {
@@ -69,14 +70,3 @@ tasks.compileKotlin.get().dependsOn(createCompileTimeConstant)
 tasks.compileKotlin.get().kotlinOptions.freeCompilerArgs = listOf("-XXLanguage:+TrailingCommas")
 
 apply(from = "${rootProject.projectDir}/gradle-scripts/publish-to-central-java.gradle.kts")
-
-tasks.withType<PublishToMavenRepository>().configureEach {
-    onlyIf {
-        if (repository.name == "mavenCentral") {
-            publication.name != "autovisitorPluginMarkerMaven"
-                    && publication.name != "pluginMaven"
-        } else {
-            true
-        }
-    }
-}
