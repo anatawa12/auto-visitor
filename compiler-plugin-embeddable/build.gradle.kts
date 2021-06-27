@@ -33,15 +33,17 @@ tasks.shadowJar {
 
 tasks.assemble.get().dependsOn(tasks.shadowJar.get())
 
-publishing.publications.create<MavenPublication>("maven") {
-    project.shadow.component(this)
-    configurePom()
-}
-
 @Suppress("UnstableApiUsage")
 java {
     withSourcesJar()
     withJavadocJar()
+}
+
+publishing.publications.create<MavenPublication>("maven") {
+    project.shadow.component(this)
+    artifact(tasks.getByName("sourcesJar"))
+    artifact(tasks.getByName("javadocJar"))
+    configurePom()
 }
 
 apply(from = "${rootProject.projectDir}/gradle-scripts/publish-to-central.gradle.kts")
