@@ -48,6 +48,9 @@ pluginBundle {
     website = "https://github.com/anatawa12/auto-visitor"
     vcsUrl = "https://github.com/anatawa12/auto-visitor"
     tags = listOf("kotlin", "visitor", "kotlin-compiler", "compiler-plugin")
+    mavenCoordinates {
+        groupId = "${project.group}"
+    }
 }
 
 fun Project.compileTimeConstant(configure: com.anatawa12.compileTimeConstant.CompileTimeConstantExtension.() -> Unit): Unit =
