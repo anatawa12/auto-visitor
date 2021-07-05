@@ -16,3 +16,17 @@ repositories {
 dependencies {
     implementation(kotlin("stdlib"))
 }
+
+allprojects {
+    afterEvaluate {
+        tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>() {
+            kotlinOptions {
+                jvmTarget = "1.8"
+            }
+        }
+        if ((this as ExtensionAware).extensions.findByName("java") is JavaPluginExtension) {
+            this.java.targetCompatibility = JavaVersion.VERSION_1_8
+            this.java.sourceCompatibility = JavaVersion.VERSION_1_8
+        }
+    }
+}

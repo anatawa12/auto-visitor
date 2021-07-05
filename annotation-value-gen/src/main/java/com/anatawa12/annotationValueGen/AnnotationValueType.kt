@@ -264,7 +264,7 @@ sealed class AnnotationValueType<T : Any>(val name: kotlin.String) {
 
     companion object {
         fun from(type: TypeMirror, errorHandler: ErrorHandler): AnnotationValueType<*>? {
-            return when (type.kind!!) {
+            return when (val typeKind = type.kind!!) {
                 TypeKind.BOOLEAN -> Boolean
                 TypeKind.BYTE -> Byte
                 TypeKind.SHORT -> Short
@@ -287,24 +287,14 @@ sealed class AnnotationValueType<T : Any>(val name: kotlin.String) {
                     if (element.qualifiedName.contentEquals("java.lang.String"))
                         return String
                     if (element.kind != ElementKind.ANNOTATION_TYPE)
-                        return errorHandler("invalid annotation value type: class or interface: $type")
+                        return errorHandler("invalid annotation value type: class or interface: $typeKind")
                     val generate = GenerateValueClassValue.findFrom(element)
                         ?: return errorHandler("invalid annotation value type: @interface without @GenerateValueClass: $type")
                     val info = AnnotationClassInfo.parse(element, generate, NopMessager)
                         ?: return errorHandler("contains some invalid value: $type")
                     Annotation(type, info)
                 }
-                TypeKind.VOID -> errorHandler("invalid annotation value type: void")
-                TypeKind.NONE -> errorHandler("invalid annotation value type: none")
-                TypeKind.NULL -> errorHandler("invalid annotation value type: null")
-                TypeKind.ERROR -> errorHandler("invalid annotation value type: error")
-                TypeKind.TYPEVAR -> errorHandler("invalid annotation value type: type variables")
-                TypeKind.WILDCARD -> errorHandler("invalid annotation value type: type wildcard")
-                TypeKind.PACKAGE -> errorHandler("invalid annotation value type: package")
-                TypeKind.EXECUTABLE -> errorHandler("invalid annotation value type: executable")
-                TypeKind.OTHER -> errorHandler("invalid annotation value type: other")
-                TypeKind.UNION -> errorHandler("invalid annotation value type: union")
-                TypeKind.INTERSECTION -> errorHandler("invalid annotation value type: intersection")
+                else -> errorHandler("invalid annotation value type: $type")
             }
         }
     }

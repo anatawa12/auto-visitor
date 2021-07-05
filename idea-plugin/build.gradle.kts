@@ -55,12 +55,11 @@ val patchPluginXml by tasks.getting(PatchPluginXmlTask::class) {
         </p>
     """.trimIndent() + (System.getenv("RELEASE_NOTE_HTML") ?: "<p>No Release Note</p>"))
     sinceBuild.set("203.7148")
-    untilBuild.set("211.*")
 }
 
 val runPluginVerifier by tasks.getting(RunPluginVerifierTask::class) {
     ideVersions.add(release1)
-    ideVersions.add(release2.substringBefore('-'))
+    ideVersions.add(release2)
 }
 
 val publishPlugin by tasks.getting(PublishPluginTask::class) {
