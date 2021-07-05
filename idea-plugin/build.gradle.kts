@@ -38,13 +38,13 @@ val release2 = "211.6693.65-EAP-SNAPSHOT"
 intellij {
     version.set(release1)
     pluginName.set("auto-visitor")
-    plugins.add("org.jetbrains.kotlin:203-1.4.30-release-IJ7148.5")
+    plugins.set(listOf("org.jetbrains.kotlin:203-1.4.30-release-IJ7148.5"))
 }
 //*
 intellij {
     version.set(release2)
     pluginName.set("auto-visitor")
-    plugins.add("org.jetbrains.kotlin:211-1.4.32-release-IJ6693.72")
+    plugins.set(listOf("org.jetbrains.kotlin:211-1.4.32-release-IJ6693.72"))
 }
 // */
 
