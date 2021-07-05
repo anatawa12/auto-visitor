@@ -1,5 +1,5 @@
 import org.jetbrains.intellij.tasks.PatchPluginXmlTask
-import org.jetbrains.intellij.tasks.PublishTask
+import org.jetbrains.intellij.tasks.PublishPluginTask
 import org.jetbrains.intellij.tasks.RunPluginVerifierTask
 
 plugins {
@@ -36,32 +36,33 @@ val release1 = "203.7148.57"
 val release2 = "211.6693.65-EAP-SNAPSHOT"
 
 intellij {
-    version = release1
-    pluginName = "auto-visitor"
-    setPlugins("org.jetbrains.kotlin:203-1.4.30-release-IJ7148.5")
+    version.set(release1)
+    pluginName.set("auto-visitor")
+    plugins.set(listOf("org.jetbrains.kotlin:203-1.4.30-release-IJ7148.5"))
 }
 //*
 intellij {
-    version = release2
-    pluginName = "auto-visitor"
-    setPlugins("org.jetbrains.kotlin:211-1.4.32-release-IJ6693.72")
+    version.set(release2)
+    pluginName.set("auto-visitor")
+    plugins.set(listOf("org.jetbrains.kotlin:211-1.4.32-release-IJ6693.72"))
 }
 // */
 
 val patchPluginXml by tasks.getting(PatchPluginXmlTask::class) {
-    changeNotes("""
+    changeNotes.set("""
         <p>
           Current version of this plugin targets Kotlin ${kotlin.coreLibrariesVersion}.
         </p>
     """.trimIndent() + (System.getenv("RELEASE_NOTE_HTML") ?: "<p>No Release Note</p>"))
-    setSinceBuild("203.7148")
-    setUntilBuild("211.*")
+    sinceBuild.set("203.7148")
+    untilBuild.set("211.*")
 }
 
 val runPluginVerifier by tasks.getting(RunPluginVerifierTask::class) {
-    setIdeVersions("$release1,${release2.substringBefore('-')}")
+    ideVersions.add(release1)
+    ideVersions.add(release2.substringBefore('-'))
 }
 
-val publishPlugin by tasks.getting(PublishTask::class) {
-    setToken(project.findProperty("com.anatawa12.jetbrains.token"))
+val publishPlugin by tasks.getting(PublishPluginTask::class) {
+    token.set(project.findProperty("com.anatawa12.jetbrains.token").toString())
 }
