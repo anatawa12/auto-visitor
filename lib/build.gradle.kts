@@ -20,14 +20,7 @@ kotlin {
         }
     }
     js(IR) {
-        browser {
-            testTask {
-                useKarma {
-                    useChromeHeadless()
-                    webpackConfig.cssSupport.enabled = true
-                }
-            }
-        }
+        nodejs()
     }
     val hostOs = System.getProperty("os.name")
     val isMingwX64 = hostOs.startsWith("Windows")
@@ -86,6 +79,12 @@ tasks.withType<org.jetbrains.kotlin.gradle.dsl.KotlinCompile<*>>() {
         freeCompilerArgs = listOf(
             "-Xopt-in=kotlin.RequiresOptIn"
         )
+    }
+}
+
+val compileKotlinJs by tasks.getting(org.jetbrains.kotlin.gradle.tasks.Kotlin2JsCompile::class) {
+    if (this.kotlinOptions.outputFile.let { it != null && !it.endsWith(".js") }) {
+        this.kotlinOptions.outputFile = "${this.kotlinOptions.outputFile}.js"
     }
 }
 
