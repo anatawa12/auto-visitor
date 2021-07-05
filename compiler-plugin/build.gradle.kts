@@ -29,9 +29,9 @@ dependencies {
     implementation(kotlin("compiler"))
     implementation(project(":lib"))
 
-    testImplementation("org.junit.jupiter:junit-jupiter:5.7.1")
+    testImplementation("org.junit.jupiter:junit-jupiter:5.7.2")
 
-    compileOnly("com.google.auto.service:auto-service-annotations:1.0-rc7")
+    compileOnly("com.google.auto.service:auto-service-annotations:1.0")
     kapt("com.google.auto.service:auto-service:1.0-rc7")
     compileOnly(project(":annotation-value-gen"))
     kapt(project(":annotation-value-gen"))
