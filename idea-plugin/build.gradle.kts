@@ -55,7 +55,6 @@ val patchPluginXml by tasks.getting(PatchPluginXmlTask::class) {
         </p>
     """.trimIndent() + (System.getenv("RELEASE_NOTE_HTML") ?: "<p>No Release Note</p>"))
     sinceBuild.set("203.7148")
-    untilBuild.set("211.*")
 }
 
 val runPluginVerifier by tasks.getting(RunPluginVerifierTask::class) {
