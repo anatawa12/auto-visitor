@@ -61,6 +61,7 @@ compileTimeConstant {
 }
 
 val createCompileTimeConstant: CreateConstantsTask by tasks
+val createTestCompileTimeConstant: CreateConstantsTask by tasks
 
 createCompileTimeConstant.apply {
     constantsClass = "com.anatawa12.autoVisitor.gradle.Constants"
@@ -70,6 +71,7 @@ createCompileTimeConstant.apply {
 }
 
 tasks.compileKotlin.get().dependsOn(createCompileTimeConstant)
+tasks.compileTestKotlin.get().dependsOn(createTestCompileTimeConstant)
 tasks.compileKotlin.get().kotlinOptions.freeCompilerArgs = listOf("-XXLanguage:+TrailingCommas")
 
 apply(from = "${rootProject.projectDir}/gradle-scripts/publish-to-central-java.gradle.kts")
