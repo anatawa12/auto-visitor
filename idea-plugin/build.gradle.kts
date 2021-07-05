@@ -59,7 +59,8 @@ val patchPluginXml by tasks.getting(PatchPluginXmlTask::class) {
 }
 
 val runPluginVerifier by tasks.getting(RunPluginVerifierTask::class) {
-    ideVersions.add("$release1,${release2.substringBefore('-')}")
+    ideVersions.add(release1)
+    ideVersions.add(release2.substringBefore('-'))
 }
 
 val publishPlugin by tasks.getting(PublishPluginTask::class) {
