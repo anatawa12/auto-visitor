@@ -101,5 +101,3 @@ val jvm by publishing.publications.getting(MavenPublication::class) {
 publishing.publications.filterIsInstance<MavenPublication>().forEach {
     it.configurePom()
 }
-
-apply(from = "${rootProject.projectDir}/gradle-scripts/publish-to-central.gradle.kts")

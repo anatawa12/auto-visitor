@@ -3,7 +3,6 @@ plugins {
     kotlin("jvm")
     base
     `maven-publish`
-    signing
 }
 
 group = project(":").group
@@ -45,5 +44,3 @@ publishing.publications.create<MavenPublication>("maven") {
     artifact(tasks.getByName("javadocJar"))
     configurePom()
 }
-
-apply(from = "${rootProject.projectDir}/gradle-scripts/publish-to-central.gradle.kts")
