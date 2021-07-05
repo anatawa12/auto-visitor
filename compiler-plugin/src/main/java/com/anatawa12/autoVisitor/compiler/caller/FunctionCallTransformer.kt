@@ -172,7 +172,7 @@ class FunctionCallTransformer(
 
         val (localClass, ctor) = createClass(ctx, lambda, whenBlock, variable, funcParam)
 
-        val parentSymbol = lambda.function.parent.cast<IrSymbolDeclaration<*>>().symbol
+        val parentSymbol = lambda.function.parent.cast<IrSymbolOwner>().symbol
         val creatingBlock =
             DeclarationIrBuilder(pluginContext, parentSymbol).irBlock(expression, IrStatementOrigin.OBJECT_LITERAL) {
                 +localClass
