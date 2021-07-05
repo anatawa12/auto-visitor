@@ -51,7 +51,7 @@ intellij {
 val patchPluginXml by tasks.getting(PatchPluginXmlTask::class) {
     changeNotes("""
         <p>
-          Current version of this plugin targets Kotlin 1.4.32.
+          Current version of this plugin targets Kotlin ${kotlin.coreLibrariesVersion}.
         </p>
         <ul>
             <li>IllegalStateException for some valid when <a href="https://github.com/anatawa12/auto-visitor/pull/24">#24</a></li>
