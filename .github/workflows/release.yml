@@ -31,7 +31,7 @@ jobs:
           GPG_PRIVATE_KEY: "${{ secrets.GPG_PRIVATE_KEY }}"
       - uses: anatawa12/something-releaser/verup_next@v1
         with:
-          new_version: "${{ steps.verup.outputs.new_version }}"
+          new_version: "${{ steps.verup.outputs.next_version }}"
           version_changers: gradle-properties
       - name: Push
         run: git push
