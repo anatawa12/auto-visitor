@@ -39,4 +39,4 @@ jobs:
           new_version: "${{ steps.verup.outputs.next_version }}"
           version_changers: gradle-properties
       - name: Push
-        run: git push
+        run: git push && git push --tags
