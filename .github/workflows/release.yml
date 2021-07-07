@@ -8,6 +8,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
         with:
+          fetch-depth: 0
           token: "${{ secrets.ACTIONS_PAT }}"
       - uses: anatawa12/something-releaser/set_user@v1
         with:
