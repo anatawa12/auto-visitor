@@ -38,8 +38,8 @@ jobs:
             ./annotation-value-gen/build
           key: ${{ runner.os }}
       - name: Build with Gradle
-        run: ./gradlew build
+        run: ./gradlew --stacktrace build
       - name: Check with Plugin Verifier
-        run: ./gradlew runPluginVerifier
+        run: ./gradlew --stacktrace runPluginVerifier
       - name: stop daemon
         run: ./gradlew --stop
