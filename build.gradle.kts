@@ -1,5 +1,5 @@
 plugins {
-    kotlin("jvm") version "1.5.20"
+    kotlin("jvm") version "1.5.21"
     kotlin("multiplatform") version "1.5.20" apply false
     kotlin("plugin.allopen") version "1.5.20" apply false
     id("org.jetbrains.intellij") version "1.1.2" apply false
