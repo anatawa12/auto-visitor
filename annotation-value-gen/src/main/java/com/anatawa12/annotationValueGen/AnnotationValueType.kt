@@ -76,7 +76,7 @@ sealed class AnnotationValueType<T : Any>(val name: kotlin.String) {
 
     object Char : AnnotationValueType<kotlin.Char>("char") {
         override fun typeName(): TypeName = TypeName.CHAR
-        override fun literalOf(value: kotlin.Char): CodeBlock = CodeBlock.of("((char)\$L)", value.toInt())
+        override fun literalOf(value: kotlin.Char): CodeBlock = CodeBlock.of("((char)\$L)", value.code)
         override fun fromValue(targetFormat: TargetFormat, name: kotlin.String): CodeBlock = when (targetFormat) {
             TargetFormat.KotlinIrCompiler ->
                 CodeBlock.of("(\$T)((\$T)\$N).getValue()", TypeName.CHAR, S.irConst, name)
