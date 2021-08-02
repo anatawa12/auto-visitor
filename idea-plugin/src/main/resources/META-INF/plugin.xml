@@ -21,4 +21,7 @@
         <syntheticResolveExtension implementation="com.anatawa12.autoVisitor.idea.AcceptResolveExtensionAdapter"/>
         <irGenerationExtension implementation="com.anatawa12.autoVisitor.idea.AutoVisitorIrGenerationExtensionAdapter"/>
     </extensions>
+    <extensions defaultExtensionNs="com.intellij">
+        <dependencySupport coordinate="com.anatawa12.autoVisitor:lib" kind="java" displayName="auto-visitor"/>
+    </extensions>
 </idea-plugin>
