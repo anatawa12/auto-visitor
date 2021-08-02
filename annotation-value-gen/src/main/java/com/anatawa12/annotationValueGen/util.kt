@@ -13,7 +13,7 @@ fun <T : Any> AnnotationValue.get(type: AnnotationValueType<T>, errorHandler: Er
     return accept(AnnotationValueVisitorToGet.getFor(), AnnotationValueVisitorToGetArg(type, errorHandler))
 }
 
-fun prefixedName(prefix: String, name: String): String = prefix + name[0].toUpperCase() + name.substring(1)
+fun prefixedName(prefix: String, name: String): String = prefix + name[0].uppercaseChar() + name.substring(1)
 
 fun parseClassName(annotationType: TypeElement, value: String, handler: ErrorHandler): ClassName? {
     val elements = value.split('.')
