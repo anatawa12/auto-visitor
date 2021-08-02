@@ -33,7 +33,7 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>() {
 }
 
 val release1 = "203.7148.57"
-val release2 = "211.7628.21"
+val release2 = "212.4746.92"
 
 intellij {
     version.set(release1)
@@ -44,7 +44,8 @@ intellij {
 intellij {
     version.set(release2)
     pluginName.set("auto-visitor")
-    plugins.set(listOf("org.jetbrains.kotlin:211-1.5.20-release-284-IJ7442.40"))
+    // use bundled because no release on marketplace
+    plugins.set(listOf("org.jetbrains.kotlin"))
 }
 // */
 
