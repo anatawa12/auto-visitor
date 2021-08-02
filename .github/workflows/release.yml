@@ -42,7 +42,7 @@ jobs:
         run: |
           prepare-gradle-signing "$GPG_PRIVATE_KEY" "$GPG_PRIVATE_PASS"
           prepare-gradle-maven "https://oss.sonatype.org/service/local/staging/deploy/maven2/" \
-            --user "$SONATYPE_USER"
+            --user "$SONATYPE_USER" \
             --pass "$SONATYPE_PASS"
           prepare-gradle-plugin-portal "$GRADLE_KEY" "$GRADLE_SECRET"
           prepare-gradle-intellij "$INTELLIJ_TOKEN"
