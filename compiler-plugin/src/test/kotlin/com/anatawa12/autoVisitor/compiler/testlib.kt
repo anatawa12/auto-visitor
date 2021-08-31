@@ -80,6 +80,7 @@ object DebuggingDiagnosticFactoryToRendererMapFactory {
 
     private class DiagnosticRendererImpl() : DiagnosticRenderer<UnboundDiagnostic> {
         override fun render(diagnostic: UnboundDiagnostic): String = diagnostic.factory.name
+        override fun renderParameters(diagnostic: UnboundDiagnostic): Array<out Any?> = arrayOf()
     }
 }
 
