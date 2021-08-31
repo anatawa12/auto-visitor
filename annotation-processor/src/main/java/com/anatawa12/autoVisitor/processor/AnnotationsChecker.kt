@@ -75,18 +75,18 @@ class AnnotationsChecker(
     }
     val INVALID_ROOT_CLASS = AnnotationDiagnosticFactory1<TypeMirror> { rootClass, e, a ->
         Diagnostic {
-            it.printMessage(DiagnosticKind.ERROR, "invalid root class: '$rootClass'")
+            it.printMessage(DiagnosticKind.ERROR, "invalid root class: '$rootClass'", e, a)
         }
 
     }
     val NO_HAS_VISITOR_AT_ROOT_CLASS = AnnotationDiagnosticFactory1<TypeMirror> { rootClass, e, a ->
         Diagnostic {
-            it.printMessage(DiagnosticKind.ERROR, "NO @HasAccept at rootClass: '$rootClass'")
+            it.printMessage(DiagnosticKind.ERROR, "NO @HasAccept at rootClass: '$rootClass'", e, a)
         }
     }
     val THIS_IS_NOT_SUBCLASS_OF = AnnotationDiagnosticFactory1<TypeMirror> { rootClass, e, a ->
         Diagnostic {
-            it.printMessage(DiagnosticKind.ERROR, "This class is not subclass of rootClass, '$rootClass'")
+            it.printMessage(DiagnosticKind.ERROR, "This class is not subclass of rootClass, '$rootClass'", e, a)
         }
     }
 

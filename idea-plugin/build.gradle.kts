@@ -33,19 +33,19 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>() {
 }
 
 val release1 = "203.7148.57"
-val release2 = "212.4746.92"
+val release2 = "212.5080.55"
 
 intellij {
     version.set(release1)
     pluginName.set("auto-visitor")
-    plugins.set(listOf("org.jetbrains.kotlin:203-1.5.20-release-289-IJ7717.8"))
+    plugins.set(listOf("org.jetbrains.kotlin:203-1.5.30-release-411-IJ7717.8"))
 }
 //*
 intellij {
     version.set(release2)
     pluginName.set("auto-visitor")
-    // use bundled because no release on marketplace
-    plugins.set(listOf("org.jetbrains.kotlin"))
+    plugins.set(listOf("org.jetbrains.kotlin:212-1.5.30-release-409-IJ4638.7"))
+    //plugins.set(listOf("org.jetbrains.kotlin"))
 }
 // */
 
