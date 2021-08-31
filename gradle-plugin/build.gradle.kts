@@ -2,7 +2,7 @@ import com.anatawa12.compileTimeConstant.CreateConstantsTask
 
 plugins {
     id("com.gradle.plugin-publish") version "0.15.0"
-    id("com.anatawa12:compile-time-constant") version "1.0.5"
+    id("com.anatawa12.compile-time-constant") version "1.0.5"
     kotlin("kapt")
     `kotlin-dsl`
     `java-gradle-plugin`
