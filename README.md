@@ -1,7 +1,7 @@
  Auto Visitor Kotlin Compiler Plugin
 ====
 
-[![a12 maintenance: Active](https://anatawa12.com/short.php?q=a12-active-svg)](https://anatawa12.com/short.php?q=a12-active-doc)
+[![a12 maintenance: Slowly](https://api.anatawa12.com/short/a12-slowly-svg)](https://api.anatawa12.com/short/a12-slowly-doc)
 [![Gradle Plugin Portal](https://img.shields.io/maven-metadata/v/https/plugins.gradle.org/m2/com/anatawa12/auto-visitor/com.anatawa12.auto-visitor.gradle.plugin/maven-metadata.xml.svg?colorB=007ec6&label=gradle&logo=gradle)](https://plugins.gradle.org/plugin/com.anatawa12.auto-visitor)
 
 A kotlin compiler plugin to make easy to write visitor pattern.
