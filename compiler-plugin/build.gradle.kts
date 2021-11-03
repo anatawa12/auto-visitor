@@ -31,7 +31,7 @@ dependencies {
 
     testImplementation("org.junit.jupiter:junit-jupiter:5.7.2")
 
-    compileOnly("com.google.auto.service:auto-service-annotations:1.0")
+    compileOnly("com.google.auto.service:auto-service-annotations:1.0.1")
     kapt("com.google.auto.service:auto-service:1.0")
     compileOnly(project(":annotation-value-gen"))
     kapt(project(":annotation-value-gen"))

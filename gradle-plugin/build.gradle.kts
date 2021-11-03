@@ -17,7 +17,7 @@ repositories {
 
 dependencies {
     implementation(kotlin("gradle-plugin-api"))
-    compileOnly("com.google.auto.service:auto-service-annotations:1.0")
+    compileOnly("com.google.auto.service:auto-service-annotations:1.0.1")
     kapt("com.google.auto.service:auto-service:1.0")
 }
 
